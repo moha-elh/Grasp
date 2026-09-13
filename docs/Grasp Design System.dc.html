@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fugaz+One&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#eceef1;color:#141a22;font-family:'Work Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:oklch(0.50 0.14 245)}a:hover{color:oklch(0.40 0.14 245)}
+</style></helmet>
+
+<div style="max-width:1180px;margin:0 auto;padding:56px 28px 96px;display:flex;flex-direction:column;gap:56px">
+
+<header style="display:flex;flex-direction:column;gap:18px">
+<div style="font:400 13px 'Fugaz One',cursive;letter-spacing:.14em;color:oklch(0.50 0.14 245)">GRASP</div>
+<h1 style="margin:0;font:400 clamp(34px,5vw,56px)/1.05 'Fugaz One',cursive;letter-spacing:.005em;max-width:20ch">Design system &amp; build brief</h1>
+<p style="margin:0;max-width:62ch;font:400 17px/1.6 'Work Sans',sans-serif;color:rgba(20,26,34,.72);text-wrap:pretty">Everything needed to build the Grasp client: palette, type, components, chart specs, the full screen inventory, and how each screen maps to the Supabase schema. Visual direction is the porcelain palette with Fugaz One display type. Source of truth for behaviour remains the requirements spec (FR numbers are cited throughout).</p>
+<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px">
+<span style="font:500 11px 'Work Sans',sans-serif;letter-spacing:.08em;padding:7px 12px;border-radius:999px;background:#fff;border:1px solid rgba(20,26,34,.12)">FLUTTER CLIENT</span>
+<span style="font:500 11px 'Work Sans',sans-serif;letter-spacing:.08em;padding:7px 12px;border-radius:999px;background:#fff;border:1px solid rgba(20,26,34,.12)">LIGHT MODE ONLY (V1)</span>
+<span style="font:500 11px 'Work Sans',sans-serif;letter-spacing:.08em;padding:7px 12px;border-radius:999px;background:#fff;border:1px solid rgba(20,26,34,.12)">390 × 844 REFERENCE</span>
+</div>
+</header>
+
+<section style="display:flex;flex-direction:column;gap:22px">
+<div style="display:flex;align-items:baseline;gap:14px"><span style="font:400 13px 'Fugaz One',cursive;color:oklch(0.50 0.14 245)">01</span><h2 style="margin:0;font:400 26px 'Fugaz One',cursive">Color</h2></div>
+<p style="margin:0;max-width:64ch;font:400 15px/1.6 'Work Sans',sans-serif;color:rgba(20,26,34,.72)">Porcelain ground, near-white surfaces, deep slate ink. Blue is the only brand accent and also means “solid”. Amber and red are reserved for retention health — they never decorate, so a warm color anywhere on screen always means something is slipping.</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px">
+<div style="border-radius:14px;overflow:hidden;background:#fff;border:1px solid rgba(20,26,34,.1)"><div style="height:76px;background:#eceef1"></div><div style="padding:12px 14px;display:flex;flex-direction:column;gap:3px"><span style="font:600 13px 'Work Sans',sans-serif">Ground</span><span style="font:400 11.5px IBM Plex Mono,monospace;color:rgba(20,26,34,.6)">#ECEEF1</span><span style="font:400 12px 'Work Sans',sans-serif;color:rgba(20,26,34,.6)">App background</span></div></div>
+<div style="border-radius:14px;overflow:hidden;background:#fff;border:1px solid rgba(20,26,34,.1)"><div style="height:76px;background:#fff;border-bottom:1px solid rgba(20,26,34,.08)"></div><div style="padding:12px 14px;display:flex;flex-direction:column;gap:3px"><span style="font:600 13px 'Work Sans',sans-serif">Surface</span><span style="font:400 11.5px IBM Plex Mono,monospace;color:rgba(20,26,34,.6)">#FFFFFF</span><span style="font:400 12px 'Work Sans',sans-serif;color:rgba(20,26,34,.6)">Cards, sheets</span></div></div>
+<div style="border-radius:14px;overflow:hidden;background:#fff;border:1px solid rgba(20,26,34,.1)"><div style="height:76px;background:#e5e8ec"></div><div style="padding:12px 14px;display:flex;flex-direction:column;gap:3px"><span style="font:600 13px 'Work Sans',sans-serif">Surface sunk</span><span style="font:400 11.5px IBM Plex Mono,monospace;color:rgba(20,26,34,.6)">#E5E8EC</span><span style="font:400 12px 'Work Sans',sans-serif;color:rgba(20,26,34,.6)">Tab bar, card stack layers</span></div></div>
+<div style="border-radius:14px;overflow:hidden;background:#fff;border:1px solid rgba(20,26,34,.1)"><div style="height:76px;background:#141a22"></div><div style="padding:12px 14px;display:flex;flex-direction:column;gap:3px"><span style="font:600 13px 'Work Sans',sans-serif">Ink</span><span style="font:400 11.5px IBM Plex Mono,monospace;color:rgba(20,26,34,.6)">#141A22</span><span style="font:400 12px 'Work Sans',sans-serif;color:rgba(20,26,34,.6)">Primary text, primary button</span></div></div>
+<div style="border-radius:14px;overflow:hidden;background:#fff;border:1px solid rgba(20,26,34,.1)"><div style="height:76px;background:oklch(0.55 0.14 245)"></div><div style="padding:12px 14px;display:flex;flex-direction:column;gap:3px"><span style="font:600 13px 'Work Sans',sans-serif">Accent / solid</span><span style="font:400 11.5px IBM Plex Mono,monospace;color:rgba(20,26,34,.6)">oklch(.55 .14 245)</span><span style="font:400 12px 'Work Sans',sans-serif;color:rgba(20,26,34,.6)">Retrievability ≥ 80%</span></div></div>
+<div style="border-radius:14px;overflow:hidden;background:#fff;border:1px solid rgba(20,26,34,.1)"><div style="height:76px;background:oklch(0.62 0.14 60)"></div><div style="padding:12px 14px;display:flex;flex-direction:column;gap:3px"><span style="font:600 13px 'Work Sans',sans-serif">Softening</span><span style="font:400 11.5px IBM Plex Mono,monospace;color:rgba(20,26,34,.6)">oklch(.62 .14 60)</span><span style="font:400 12px 'Work Sans',sans-serif;color:rgba(20,26,34,.6)">50–79%</span></div></div>
+<div style="border-radius:14px;overflow:hidden;background:#fff;border:1px solid rgba(20,26,34,.1)"><div style="height:76px;background:oklch(0.58 0.16 25)"></div><div style="padding:12px 14px;display:flex;flex-direction:column;gap:3px"><span style="font:600 13px 'Work Sans',sans-serif">Slipping</span><span style="font:400 11.5px IBM Plex Mono,monospace;color:rgba(20,26,34,.6)">oklch(.58 .16 25)</span><span style="font:400 12px 'Work Sans',sans-serif;color:rgba(20,26,34,.6)">&lt; 50%, and Again</span></div></div>
+<div style="border-radius:14px;overflow:hidden;background:#fff;border:1px solid rgba(20,26,34,.1)"><div style="height:76px;background:linear-gradient(90deg,rgba(20,26,34,.55),rgba(20,26,34,.28),rgba(20,26,34,.12))"></div><div style="padding:12px 14px;display:flex;flex-direction:column;gap:3px"><span style="font:600 13px 'Work Sans',sans-serif">Ink alphas</span><span style="font:400 11.5px IBM Plex Mono,monospace;color:rgba(20,26,34,.6)">.72 / .60 / .12</span><span style="font:400 12px 'Work Sans',sans-serif;color:rgba(20,26,34,.6)">Body · meta · hairline</span></div></div>
+</div>
+<p style="margin:0;padding:16px 18px;border-radius:12px;background:#fff;border:1px solid rgba(20,26,34,.1);font:400 14px/1.6 'Work Sans',sans-serif;color:rgba(20,26,34,.78);max-width:74ch">Rule: never take meta text below <span style="font-family:IBM Plex Mono,monospace">rgba(20,26,34,.58)</span>. Health colors are used at full opacity only — a muted red reads as a disabled control, not a warning.</p>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:22px">
+<div style="display:flex;align-items:baseline;gap:14px"><span style="font:400 13px 'Fugaz One',cursive;color:oklch(0.50 0.14 245)">02</span><h2 style="margin:0;font:400 26px 'Fugaz One',cursive">Type</h2></div>
+<p style="margin:0;max-width:64ch;font:400 15px/1.6 'Work Sans',sans-serif;color:rgba(20,26,34,.72)">Fugaz One for the wordmark, screen titles and headline numbers only — it has one weight and no italics, so it must never carry running text. Work Sans does everything else. IBM Plex Mono carries small structural labels and intervals.</p>
+<div style="display:flex;flex-direction:column;gap:2px;border-radius:16px;overflow:hidden;border:1px solid rgba(20,26,34,.1)">
+<div style="background:#fff;padding:20px 22px;display:flex;flex-wrap:wrap;gap:18px;align-items:baseline;justify-content:space-between"><span style="font:400 40px 'Fugaz One',cursive">Retention</span><span style="font:400 12px IBM Plex Mono,monospace;color:rgba(20,26,34,.6)">Fugaz One 24–40 / 1.1 · screen title, big %</span></div>
+<div style="background:#fff;padding:20px 22px;display:flex;flex-wrap:wrap;gap:18px;align-items:baseline;justify-content:space-between"><span style="font:600 19px 'Work Sans',sans-serif">Liskov Substitution</span><span style="font:400 12px IBM Plex Mono,monospace;color:rgba(20,26,34,.6)">Work Sans 600 · 19 / 1.2 · concept name</span></div>
+<div style="background:#fff;padding:20px 22px;display:flex;flex-wrap:wrap;gap:18px;align-items:baseline;justify-content:space-between"><span style="font:400 22px/1.45 'Work Sans',sans-serif;max-width:36ch">It overrides the setters to keep both sides equal, so the caller's second assignment silently undoes the first.</span><span style="font:400 12px IBM Plex Mono,monospace;color:rgba(20,26,34,.6)">Work Sans 400 · 22 / 1.45 · card answer</span></div>
+<div style="background:#fff;padding:20px 22px;display:flex;flex-wrap:wrap;gap:18px;align-items:baseline;justify-content:space-between"><span style="font:400 17px/1.45 'Work Sans',sans-serif;color:rgba(20,26,34,.72);max-width:36ch">Why can a Square that inherits from Rectangle produce a wrong area?</span><span style="font:400 12px IBM Plex Mono,monospace;color:rgba(20,26,34,.6)">Work Sans 400 · 17 / 1.45 · question, body</span></div>
+<div style="background:#fff;padding:20px 22px;display:flex;flex-wrap:wrap;gap:18px;align-items:baseline;justify-content:space-between"><span style="font:500 10px IBM Plex Mono,monospace;letter-spacing:.12em;color:rgba(20,26,34,.62)">MISSED 3× — ALWAYS THIS CARD</span><span style="font:400 12px IBM Plex Mono,monospace;color:rgba(20,26,34,.6)">Plex Mono 500 · 10 / .12em · label, interval</span></div>
+</div>
+<p style="margin:0;padding:16px 18px;border-radius:12px;background:#fff;border:1px solid rgba(20,26,34,.1);font:400 14px/1.6 'Work Sans',sans-serif;color:rgba(20,26,34,.78);max-width:74ch">Minimum sizes: body 15, card answer 20, any tappable label 14, mono labels 10 with letter-spacing. Never set Fugaz One below 13 or above 56.</p>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:22px">
+<div style="display:flex;align-items:baseline;gap:14px"><span style="font:400 13px 'Fugaz One',cursive;color:oklch(0.50 0.14 245)">03</span><h2 style="margin:0;font:400 26px 'Fugaz One',cursive">Layout, shape, elevation, motion</h2></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px">
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:8px"><span style="font:600 14px 'Work Sans',sans-serif">Spacing</span><span style="font:400 13.5px/1.6 'Work Sans',sans-serif;color:rgba(20,26,34,.72)">4 · 8 · 12 · 18 · 24 · 32. Screen gutter 24–26. Section gap 20. Nothing between 12 and 18.</span></div>
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:8px"><span style="font:600 14px 'Work Sans',sans-serif">Radius</span><span style="font:400 13.5px/1.6 'Work Sans',sans-serif;color:rgba(20,26,34,.72)">Cards 22 · controls 16 · pills 999 · badges 4. One radius per role, no mixing inside a screen.</span></div>
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:8px"><span style="font:600 14px 'Work Sans',sans-serif">Elevation</span><span style="font:400 13.5px/1.6 'Work Sans',sans-serif;color:rgba(20,26,34,.72)">One shadow only: <span style="font-family:IBM Plex Mono,monospace;font-size:12.5px">0 20px 40px rgba(20,26,34,.12)</span>, on the active card. Everything else uses a hairline border.</span></div>
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:8px"><span style="font:600 14px 'Work Sans',sans-serif">Hit targets</span><span style="font:400 13.5px/1.6 'Work Sans',sans-serif;color:rgba(20,26,34,.72)">Grading chips 64 tall, primary buttons 52, tab items 48. Nothing tappable under 44.</span></div>
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:8px"><span style="font:600 14px 'Work Sans',sans-serif">Motion</span><span style="font:400 13.5px/1.6 'Work Sans',sans-serif;color:rgba(20,26,34,.72)">Reveal 180ms ease-out, card advance 240ms, swipe follows the finger with 12° max tilt. Ring and curve charts animate once on entry (600ms), never on scroll.</span></div>
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:8px"><span style="font:600 14px 'Work Sans',sans-serif">No</span><span style="font:400 13.5px/1.6 'Work Sans',sans-serif;color:rgba(20,26,34,.72)">No gradients on surfaces, no icon-only actions without a label, no streak or activity counter anywhere (FR-30).</span></div>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:22px">
+<div style="display:flex;align-items:baseline;gap:14px"><span style="font:400 13px 'Fugaz One',cursive;color:oklch(0.50 0.14 245)">04</span><h2 style="margin:0;font:400 26px 'Fugaz One',cursive">Components</h2></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px">
+
+<div style="display:flex;flex-direction:column;gap:12px">
+<span style="font:500 10px IBM Plex Mono,monospace;letter-spacing:.12em;color:rgba(20,26,34,.62)">STUDY CARD (STACKED)</span>
+<div style="background:#e5e8ec;border-radius:16px;padding:26px 22px 22px;position:relative">
+<div style="position:absolute;left:46px;right:46px;top:14px;height:40px;border-radius:18px;background:#dde1e6;border:1px solid rgba(20,26,34,.1)"></div>
+<div style="position:absolute;left:36px;right:36px;top:20px;height:40px;border-radius:18px;background:#e9ecef;border:1px solid rgba(20,26,34,.1)"></div>
+<div style="position:relative;margin-top:12px;background:#fff;border:1px solid rgba(20,26,34,.08);border-radius:22px;box-shadow:0 20px 40px rgba(20,26,34,.12);padding:20px;display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;align-items:center;justify-content:space-between"><span style="font:500 9.5px IBM Plex Mono,monospace;letter-spacing:.13em;white-space:nowrap;color:rgba(20,26,34,.62)">RECONSTRUCT IT ALOUD</span><span style="display:flex;align-items:center;gap:6px;font:500 9.5px IBM Plex Mono,monospace;color:rgba(20,26,34,.62)"><span style="width:9px;height:9px;border-radius:50%;background:oklch(0.60 0.14 245)"></span>71%</span></div>
+<div style="font:400 20px/1.35 'Work Sans',sans-serif;text-wrap:pretty">Why can a Square that inherits from Rectangle produce a wrong area?</div>
+<div style="display:flex;align-items:center;justify-content:space-between"><span style="font:400 11.5px 'Work Sans',sans-serif;color:rgba(20,26,34,.62)">Liskov Substitution</span><span style="font:500 10px IBM Plex Mono,monospace;letter-spacing:.08em;color:rgba(20,26,34,.62)">TAP TO REVEAL</span></div>
+</div>
+</div>
+<span style="font:400 13.5px/1.6 'Work Sans',sans-serif;color:rgba(20,26,34,.7)">Two peeking layers = session remaining. Recall bead shows FSRS retrievability, colored by the health scale. Card type is hidden until reveal.</span>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:12px">
+<span style="font:500 10px IBM Plex Mono,monospace;letter-spacing:.12em;color:rgba(20,26,34,.62)">GRADING CHIPS · FR-22</span>
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;gap:8px">
+<div style="flex:1;height:64px;border-radius:16px;background:oklch(0.62 0.16 25);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px"><span style="font:600 14.5px 'Work Sans',sans-serif;color:#fff">Again</span><span style="font:400 10px IBM Plex Mono,monospace;color:rgba(255,255,255,.85)">10m</span></div>
+<div style="flex:1;height:64px;border-radius:16px;background:#fff;border:1px solid rgba(20,26,34,.14);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px"><span style="font:600 14.5px 'Work Sans',sans-serif">Hard</span><span style="font:400 10px IBM Plex Mono,monospace;color:rgba(20,26,34,.62)">2d</span></div>
+<div style="flex:1;height:64px;border-radius:16px;background:#fff;border:1px solid rgba(20,26,34,.14);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px"><span style="font:600 14.5px 'Work Sans',sans-serif">Good</span><span style="font:400 10px IBM Plex Mono,monospace;color:rgba(20,26,34,.62)">9d</span></div>
+<div style="flex:1;height:64px;border-radius:16px;background:#fff;border:1px solid rgba(20,26,34,.14);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px"><span style="font:600 14.5px 'Work Sans',sans-serif">Easy</span><span style="font:400 10px IBM Plex Mono,monospace;color:rgba(20,26,34,.62)">21d</span></div>
+</div>
+<div style="display:flex;justify-content:center;font:400 12px 'Work Sans',sans-serif;color:rgba(20,26,34,.6)">Badly made card?<span style="margin-left:6px;color:#141a22;text-decoration:underline;text-underline-offset:3px">Flag it</span></div>
+</div>
+<span style="font:400 13.5px/1.6 'Work Sans',sans-serif;color:rgba(20,26,34,.7)">Intervals come from FSRS, shown before tapping. Only Again is filled. Quality (FR-24) sits below as a text link so it can never be mistaken for a fifth grade.</span>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:12px">
+<span style="font:500 10px IBM Plex Mono,monospace;letter-spacing:.12em;color:rgba(20,26,34,.62)">TYPE BADGES · FR-8</span>
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:16px;padding:18px;display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+<span style="font:600 9.5px IBM Plex Mono,monospace;letter-spacing:.12em;padding:5px 9px;border-radius:4px;color:rgba(20,26,34,.75);border:1px solid rgba(20,26,34,.25)">ANCHOR</span>
+<span style="font:600 9.5px IBM Plex Mono,monospace;letter-spacing:.12em;padding:5px 9px;border-radius:4px;color:oklch(0.45 0.13 245);border:1px solid oklch(0.60 0.12 245 / .45)">MECHANISM</span>
+<span style="font:600 9.5px IBM Plex Mono,monospace;letter-spacing:.12em;padding:5px 9px;border-radius:4px;color:oklch(0.48 0.11 145);border:1px solid oklch(0.60 0.11 145 / .45)">APPLICATION</span>
+<span style="font:600 9.5px IBM Plex Mono,monospace;letter-spacing:.12em;padding:5px 9px;border-radius:4px;color:oklch(0.48 0.15 25);border:1px solid oklch(0.62 0.14 25 / .45)">REMAKE</span>
+<span style="font:600 9.5px IBM Plex Mono,monospace;letter-spacing:.12em;padding:5px 9px;border-radius:4px;color:rgba(20,26,34,.62);border:1px solid rgba(20,26,34,.18)">PENDING</span>
+</div>
+<span style="font:400 13.5px/1.6 'Work Sans',sans-serif;color:rgba(20,26,34,.7)">Outline only, never filled — filled pills are reserved for actions. Type badge appears with the answer during review; visible from the start while vetting.</span>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:12px">
+<span style="font:500 10px IBM Plex Mono,monospace;letter-spacing:.12em;color:rgba(20,26,34,.62)">CONCEPT ROW</span>
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:16px;padding:8px 18px;display:flex;flex-direction:column">
+<div style="display:flex;align-items:center;gap:12px;padding:13px 0"><span style="flex:1;font:500 14.5px 'Work Sans',sans-serif">Liskov Substitution</span><span style="width:74px;height:6px;border-radius:4px;background:rgba(20,26,34,.1);display:flex"><span style="width:41%;border-radius:4px;background:oklch(0.58 0.16 25)"></span></span><span style="width:40px;text-align:right;font:400 14px 'Fugaz One',cursive">41%</span></div>
+<div style="display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid rgba(20,26,34,.12)"><span style="flex:1;font:500 14.5px 'Work Sans',sans-serif">Eventual Consistency</span><span style="width:74px;height:6px;border-radius:4px;background:rgba(20,26,34,.1);display:flex"><span style="width:55%;border-radius:4px;background:oklch(0.62 0.14 60)"></span></span><span style="width:40px;text-align:right;font:400 14px 'Fugaz One',cursive">55%</span></div>
+<div style="display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid rgba(20,26,34,.12)"><span style="flex:1;font:500 14.5px 'Work Sans',sans-serif">Idempotency</span><span style="width:74px;height:6px;border-radius:4px;background:rgba(20,26,34,.1);display:flex"><span style="width:76%;border-radius:4px;background:oklch(0.55 0.14 245)"></span></span><span style="width:40px;text-align:right;font:400 14px 'Fugaz One',cursive">76%</span></div>
+</div>
+<span style="font:400 13.5px/1.6 'Work Sans',sans-serif;color:rgba(20,26,34,.7)">Hairline separators, no card per row. The percentage is mechanism retrievability; the bar repeats it for scanning. Tapping opens concept detail.</span>
+</div>
+
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:22px">
+<div style="display:flex;align-items:baseline;gap:14px"><span style="font:400 13px 'Fugaz One',cursive;color:oklch(0.50 0.14 245)">05</span><h2 style="margin:0;font:400 26px 'Fugaz One',cursive">Charts</h2></div>
+<p style="margin:0;max-width:64ch;font:400 15px/1.6 'Work Sans',sans-serif;color:rgba(20,26,34,.72)">Three chart forms, each with one job. Rings answer “where do I stand right now”, the curve answers “which way is it moving”, the bar row answers “which concept next”. No other chart types, no pie slices, no donut with more than two arcs.</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px">
+
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:16px">
+<span style="font:500 10px IBM Plex Mono,monospace;letter-spacing:.12em;color:rgba(20,26,34,.62)">DUAL RING — NAME vs EXPLAIN</span>
+<div style="display:flex;align-items:center;gap:22px;flex-wrap:wrap">
+<svg viewBox="0 0 120 120" style="width:132px;height:132px" data-om-raster>
+<circle cx="60" cy="60" r="52" fill="none" stroke="rgba(20,26,34,.1)" stroke-width="11"></circle>
+<circle cx="60" cy="60" r="52" fill="none" stroke="oklch(0.55 0.14 245)" stroke-width="11" stroke-linecap="round" stroke-dasharray="258 327" transform="rotate(-90 60 60)"></circle>
+<circle cx="60" cy="60" r="36" fill="none" stroke="rgba(20,26,34,.1)" stroke-width="11"></circle>
+<circle cx="60" cy="60" r="36" fill="none" stroke="oklch(0.58 0.16 25)" stroke-width="11" stroke-linecap="round" stroke-dasharray="104 226" transform="rotate(-90 60 60)"></circle>
+</svg>
+<div style="display:flex;flex-direction:column;gap:12px;min-width:130px">
+<div style="display:flex;flex-direction:column"><span style="font:500 9.5px IBM Plex Mono,monospace;letter-spacing:.1em;white-space:nowrap;color:rgba(20,26,34,.62)">CAN NAME</span><span style="font:400 30px/1 'Fugaz One',cursive;color:oklch(0.50 0.14 245)">79%</span></div>
+<div style="display:flex;flex-direction:column"><span style="font:500 9.5px IBM Plex Mono,monospace;letter-spacing:.1em;white-space:nowrap;color:rgba(20,26,34,.62)">CAN EXPLAIN</span><span style="font:400 30px/1 'Fugaz One',cursive;color:oklch(0.58 0.16 25)">46%</span></div>
+</div>
+</div>
+<span style="font:400 13.5px/1.6 'Work Sans',sans-serif;color:rgba(20,26,34,.7)">Outer ring = anchor-card retrievability, inner = mechanism. The visible gap between arcs <em>is</em> the FR-28 name/mechanism gap. Inner arc takes the health color; outer is always accent. Stroke 11, cap round, starts at 12 o'clock.</span>
+</div>
+
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:16px">
+<span style="font:500 10px IBM Plex Mono,monospace;letter-spacing:.12em;color:rgba(20,26,34,.62)">90-DAY CURVE</span>
+<svg viewBox="0 0 300 120" style="width:100%;height:130px;overflow:visible" data-om-raster>
+<line x1="0" y1="10" x2="300" y2="10" stroke="rgba(20,26,34,.09)"></line>
+<line x1="0" y1="55" x2="300" y2="55" stroke="rgba(20,26,34,.09)"></line>
+<line x1="0" y1="100" x2="300" y2="100" stroke="rgba(20,26,34,.14)"></line>
+<path d="M0 78 L60 62 L120 50 L180 36 L240 28 L300 25 L300 100 L0 100 Z" fill="oklch(0.55 0.14 245 / .12)"></path>
+<path d="M0 78 L60 62 L120 50 L180 36 L240 28 L300 25" fill="none" stroke="oklch(0.50 0.14 245)" stroke-width="2.5" stroke-linejoin="round"></path>
+<path d="M0 92 L60 88 L120 80 L180 72 L240 66 L300 58" fill="none" stroke="oklch(0.58 0.16 25)" stroke-width="2.5" stroke-linejoin="round"></path>
+<circle cx="300" cy="25" r="4" fill="oklch(0.50 0.14 245)"></circle>
+<circle cx="300" cy="58" r="4" fill="oklch(0.58 0.16 25)"></circle>
+</svg>
+<div style="display:flex;gap:16px;font:400 12px 'Work Sans',sans-serif;color:rgba(20,26,34,.7)"><span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:3px;border-radius:2px;background:oklch(0.50 0.14 245)"></span>Naming</span><span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:3px;border-radius:2px;background:oklch(0.58 0.16 25)"></span>Mechanism</span></div>
+<span style="font:400 13.5px/1.6 'Work Sans',sans-serif;color:rgba(20,26,34,.7)">Two series, weekly rollup, 90-day window. Only the naming series gets an area fill. Three gridlines (0 / 50 / 100). Hide entirely until 14 days of history exist — show “not enough history yet” instead (FR-30 defers long-range trends).</span>
+</div>
+
+</div>
+<p style="margin:0;padding:16px 18px;border-radius:12px;background:#fff;border:1px solid rgba(20,26,34,.1);font:400 14px/1.6 'Work Sans',sans-serif;color:rgba(20,26,34,.78);max-width:74ch">Every chart legend must name exactly the encodings drawn. If a series changes color by health, the legend becomes a three-step ramp key (slipping / softening / solid) instead of a series key.</p>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:22px">
+<div style="display:flex;align-items:baseline;gap:14px"><span style="font:400 13px 'Fugaz One',cursive;color:oklch(0.50 0.14 245)">06</span><h2 style="margin:0;font:400 26px 'Fugaz One',cursive">Screen inventory</h2></div>
+<p style="margin:0;max-width:64ch;font:400 15px/1.6 'Work Sans',sans-serif;color:rgba(20,26,34,.72)">Fourteen screens for v1. Two tabs plus Session; Explore is phase 1b. Each entry lists what it holds, its states, and the requirements it satisfies.</p>
+<div style="display:flex;flex-direction:column;gap:12px">
+
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:12px"><span style="font:400 18px 'Fugaz One',cursive">01 · Dropbox connect</span><span style="font:500 10px IBM Plex Mono,monospace;letter-spacing:.1em;color:rgba(20,26,34,.62)">ONE-TIME · FR-1 → FR-3</span></div>
+<div style="font:400 14.5px/1.65 'Work Sans',sans-serif;color:rgba(20,26,34,.75)">One explanation, one button. States: disconnected · OAuth in progress · connected (shows vault path and note count) · scope error. The Full Dropbox scope requirement needs one plain sentence about why — the vault lives inside another app's folder.</div>
+</div>
+
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:12px"><span style="font:400 18px 'Fugaz One',cursive">02 · Session (question)</span><span style="font:500 10px IBM Plex Mono,monospace;letter-spacing:.1em;color:rgba(20,26,34,.62)">DEFAULT LAUNCH · FR-16, FR-23</span></div>
+<div style="font:400 14.5px/1.65 'Work Sans',sans-serif;color:rgba(20,26,34,.75)">Opens straight into the stacked study card. Header: due / new counts and position. Card: reconstruct prompt, recall bead, question, concept name, tap to reveal. Footer: two-segment progress. No configuration, no note picker.</div>
+</div>
+
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:12px"><span style="font:400 18px 'Fugaz One',cursive">03 · Session (revealed)</span><span style="font:500 10px IBM Plex Mono,monospace;letter-spacing:.1em;color:rgba(20,26,34,.62)">FR-22, FR-24, FR-25</span></div>
+<div style="font:400 14.5px/1.65 'Work Sans',sans-serif;color:rgba(20,26,34,.75)">Question shrinks to a header; the card holds the answer, type badge, and a link to the source note. Grading chips carry FSRS intervals. “Flag it” sits below, and flagging shows the rule in words: dislike means badly made, never hard.</div>
+</div>
+
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:12px"><span style="font:400 18px 'Fugaz One',cursive">04 · Source note sheet</span><span style="font:500 10px IBM Plex Mono,monospace;letter-spacing:.1em;color:rgba(20,26,34,.62)">TRUST LAYER · FR-4</span></div>
+<div style="font:400 14.5px/1.65 'Work Sans',sans-serif;color:rgba(20,26,34,.75)">Bottom sheet showing the stored source excerpt with the note path. Read-only, with no edit affordance anywhere — the vault is never written to.</div>
+</div>
+
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:12px"><span style="font:400 18px 'Fugaz One',cursive">05 · Swipe vetting</span><span style="font:500 10px IBM Plex Mono,monospace;letter-spacing:.1em;color:rgba(20,26,34,.62)">FR-14, FR-15, FR-20</span></div>
+<div style="font:400 14.5px/1.65 'Work Sans',sans-serif;color:rgba(20,26,34,.75)">A bounded batch woven into the session — the header states the count and a dot row shows what remains. Front and back both visible. Right accepts, left discards, up accepts then opens the wording editor; buttons mirror every swipe. Not an infinite feed.</div>
+</div>
+
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:12px"><span style="font:400 18px 'Fugaz One',cursive">06 · Wording editor</span><span style="font:500 10px IBM Plex Mono,monospace;letter-spacing:.1em;color:rgba(20,26,34,.62)">FR-14 · SWIPE UP</span></div>
+<div style="font:400 14.5px/1.65 'Work Sans',sans-serif;color:rgba(20,26,34,.75)">Front and back fields, card type as a three-way selector, source excerpt visible below for checking against. Saves as approved.</div>
+</div>
+
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:12px"><span style="font:400 18px 'Fugaz One',cursive">07 · Session complete</span><span style="font:500 10px IBM Plex Mono,monospace;letter-spacing:.1em;color:rgba(20,26,34,.62)">FR-15, FR-30</span></div>
+<div style="font:400 14.5px/1.65 'Work Sans',sans-serif;color:rgba(20,26,34,.75)">A stopping point, not a reward screen: what was reviewed, what was vetted, when the next cards come due, and one line telling the user to stop. No streak, no confetti, no “keep going”.</div>
+</div>
+
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:12px"><span style="font:400 18px 'Fugaz One',cursive">08 · Retention</span><span style="font:500 10px IBM Plex Mono,monospace;letter-spacing:.1em;color:rgba(20,26,34,.62)">TAB · FR-27 → FR-30</span></div>
+<div style="font:400 14.5px/1.65 'Work Sans',sans-serif;color:rgba(20,26,34,.75)">Dual ring with name / explain percentages, the 90-day curve, then concept rows sorted by widest gap. Answers what's solid, what's slipping, and where the gap is. Before 14 days of history: rings only.</div>
+</div>
+
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:12px"><span style="font:400 18px 'Fugaz One',cursive">09 · Concept detail</span><span style="font:500 10px IBM Plex Mono,monospace;letter-spacing:.1em;color:rgba(20,26,34,.62)">FR-28, FR-29</span></div>
+<div style="font:400 14.5px/1.65 'Work Sans',sans-serif;color:rgba(20,26,34,.75)">Per-concept dual ring, a breakdown by card type, the cards most often missed, and “seen 47× / 60%” as a detail line with the reading that the cards are too fat. Times-seen never appears as a headline. Primary action: open the note.</div>
+</div>
+
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:12px"><span style="font:400 18px 'Fugaz One',cursive">10 · Remake pile</span><span style="font:500 10px IBM Plex Mono,monospace;letter-spacing:.1em;color:rgba(20,26,34,.62)">FR-26</span></div>
+<div style="font:400 14.5px/1.65 'Work Sans',sans-serif;color:rgba(20,26,34,.75)">Flagged cards in a list with one batch action to regenerate. Reachable from Retention only, never surfaced mid-session. Regenerated cards re-enter through vetting.</div>
+</div>
+
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:12px"><span style="font:400 18px 'Fugaz One',cursive">11 · Explore</span><span style="font:500 10px IBM Plex Mono,monospace;letter-spacing:.1em;color:rgba(20,26,34,.62)">TAB · PHASE 1B · FR-19, FR-20</span></div>
+<div style="font:400 14.5px/1.65 'Work Sans',sans-serif;color:rgba(20,26,34,.75)">Adjacent concepts and web-sourced cards, each showing its citation inline — a card without a visible source is a bug. A single verify promotes into Retention; copy still points toward writing a note first.</div>
+</div>
+
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:12px"><span style="font:400 18px 'Fugaz One',cursive">12 · Settings</span><span style="font:500 10px IBM Plex Mono,monospace;letter-spacing:.1em;color:rgba(20,26,34,.62)">FR-17</span></div>
+<div style="font:400 14.5px/1.65 'Work Sans',sans-serif;color:rgba(20,26,34,.75)">New-card throttle (default 10) with a sentence on why raising it is a load tradeoff, plus a read-only line stating due reviews are never capped. Dropbox status, sign-out, generation mix read-out.</div>
+</div>
+
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:12px"><span style="font:400 18px 'Fugaz One',cursive">13 · Empty &amp; error states</span><span style="font:500 10px IBM Plex Mono,monospace;letter-spacing:.1em;color:rgba(20,26,34,.62)">ALL SCREENS</span></div>
+<div style="font:400 14.5px/1.65 'Work Sans',sans-serif;color:rgba(20,26,34,.75)">Nothing due today · no tagged notes yet · generation still running · Dropbox unreachable · not enough history for the curve. Each is one sentence and at most one action.</div>
+</div>
+
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:12px"><span style="font:400 18px 'Fugaz One',cursive">14 · Tab bar</span><span style="font:500 10px IBM Plex Mono,monospace;letter-spacing:.1em;color:rgba(20,26,34,.62)">FR-18, FR-19</span></div>
+<div style="font:400 14.5px/1.65 'Work Sans',sans-serif;color:rgba(20,26,34,.75)">Session · Retention · Explore. Sunk surface, hairline top border, active item in full ink. Hidden during an active session so the loop isn't interrupted.</div>
+</div>
+
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:22px">
+<div style="display:flex;align-items:baseline;gap:14px"><span style="font:400 13px 'Fugaz One',cursive;color:oklch(0.50 0.14 245)">07</span><h2 style="margin:0;font:400 26px 'Fugaz One',cursive">Data to UI</h2></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px">
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:8px"><span style="font:600 14px 'Work Sans',sans-serif">Recall bead &amp; health color</span><span style="font:400 13.5px/1.6 'Work Sans',sans-serif;color:rgba(20,26,34,.72)">FSRS retrievability read from the card's serialized FSRS state. ≥80 accent · 50–79 softening · under 50 slipping.</span></div>
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:8px"><span style="font:600 14px 'Work Sans',sans-serif">Dual ring</span><span style="font:400 13.5px/1.6 'Work Sans',sans-serif;color:rgba(20,26,34,.72)">Mean retrievability of anchor cards versus mechanism cards, rolled up by source note path.</span></div>
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:8px"><span style="font:600 14px 'Work Sans',sans-serif">Curve</span><span style="font:400 13.5px/1.6 'Work Sans',sans-serif;color:rgba(20,26,34,.72)">Weekly buckets of review logs joined to card type; a review counts as recalled at rating 3 or 4.</span></div>
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:8px"><span style="font:600 14px 'Work Sans',sans-serif">Grading intervals</span><span style="font:400 13.5px/1.6 'Work Sans',sans-serif;color:rgba(20,26,34,.72)">The four FSRS previews are computed before the chips render, so each interval is shown before it is chosen.</span></div>
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:8px"><span style="font:600 14px 'Work Sans',sans-serif">Session queue</span><span style="font:400 13.5px/1.6 'Work Sans',sans-serif;color:rgba(20,26,34,.72)">Every approved card due now (uncapped), plus up to N new cards, plus a bounded slice of pending cards to vet.</span></div>
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:8px"><span style="font:600 14px 'Work Sans',sans-serif">Flag it</span><span style="font:400 13.5px/1.6 'Work Sans',sans-serif;color:rgba(20,26,34,.72)">Marks quality as disliked; an already-approved card also moves to the remake pile. It never touches FSRS state — the two signals stay on separate axes.</span></div>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:22px">
+<div style="display:flex;align-items:baseline;gap:14px"><span style="font:400 13px 'Fugaz One',cursive;color:oklch(0.50 0.14 245)">08</span><h2 style="margin:0;font:400 26px 'Fugaz One',cursive">Voice</h2></div>
+<div style="background:#fff;border:1px solid rgba(20,26,34,.1);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:16px;max-width:78ch">
+<span style="font:400 15px/1.7 'Work Sans',sans-serif;color:rgba(20,26,34,.8)">Coach-like and direct. The app says what to do next, then gets out of the way. It never congratulates, never counts sessions.</span>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font:500 10px IBM Plex Mono,monospace;letter-spacing:.1em;color:oklch(0.45 0.11 145)">WRITE</span><span style="font:400 14.5px/1.6 'Work Sans',sans-serif">“You've been able to name it for three weeks. You still can't say why a Square breaks it.”</span></div>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font:500 10px IBM Plex Mono,monospace;letter-spacing:.1em;color:oklch(0.48 0.15 25)">DON'T</span><span style="font:400 14.5px/1.6 'Work Sans',sans-serif;color:rgba(20,26,34,.72)">“Nice work! 7-day streak — keep the momentum going.”</span></div>
+</div>
+<span style="font:400 14px/1.65 'Work Sans',sans-serif;color:rgba(20,26,34,.72)">Labels are nouns, not possessives (“Retention”, not “Your retention”). Every number carries a word saying what it measures. One sentence per empty state.</span>
+</div>
+</section>
+
+</div>
+</x-dc>
+</body>
+</html>
