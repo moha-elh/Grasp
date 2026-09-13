@@ -14,9 +14,10 @@ class GeneratedCard {
   const GeneratedCard(this.front, this.back, this.type);
 }
 
-/// Authors flashcards from note text via an LLM (FR-6, text-only in v1 FR-5).
-/// Anthropic by default; swap the endpoint/body for OpenAI if only that key is
-/// set. The prompt (generation_prompt.dart) — not this glue — is the product.
+/// Authors flashcards from note text via an OpenAI-compatible LLM API
+/// (FR-6, text-only in v1 FR-5). Provider/model configured in Config (Groq
+/// default; Mistral is a drop-in swap). The prompt (generation_prompt.dart) —
+/// not this glue — is the product.
 class LlmService {
   final http.Client _http;
   LlmService([http.Client? client]) : _http = client ?? http.Client();
@@ -27,23 +28,17 @@ class LlmService {
     required Map<String, double> targetMix,
     int maxCards = 6,
   }) async {
-    final key = Config.anthropicKey;
-    if (key == null || key.isEmpty) {
-      throw StateError('No ANTHROPIC_API_KEY set (see llm_service for OpenAI swap)');
-    }
-
     final resp = await _http.post(
-      Uri.https('api.anthropic.com', '/v1/messages'),
+      Uri.https(Config.llmBaseUrl, Config.llmPath),
       headers: {
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
+        'Authorization': 'Bearer ${Config.llmKey}',
+        'Content-Type': 'application/json',
       },
       body: jsonEncode({
-        'model': 'claude-sonnet-5',
-        'max_tokens': 2048,
-        'system': generationSystemPrompt,
+        'model': Config.llmModel,
+        'response_format': {'type': 'json_object'},
         'messages': [
+          {'role': 'system', 'content': generationSystemPrompt},
           {
             'role': 'user',
             'content': generationUserPrompt(
@@ -61,7 +56,7 @@ class LlmService {
     }
 
     final body = jsonDecode(resp.body) as Map<String, dynamic>;
-    final text = (body['content'] as List).first['text'] as String;
+    final text = body['choices'][0]['message']['content'] as String;
     return _parse(text);
   }
 

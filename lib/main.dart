@@ -11,7 +11,7 @@ Future<void> main() async {
   await dotenv.load(fileName: '.env');
   await Supabase.initialize(
     url: Config.supabaseUrl,
-    anonKey: Config.supabaseAnonKey,
+    publishableKey: Config.supabaseKey,
   );
   runApp(const ProviderScope(child: GraspApp()));
 }

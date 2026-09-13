@@ -4,10 +4,16 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class Config {
   // --- Secrets (from .env) ---
   static String get supabaseUrl => _req('SUPABASE_URL');
-  static String get supabaseAnonKey => _req('SUPABASE_ANON_KEY');
+  static String get supabaseKey => _req('SUPABASE_KEY'); // publishable key
   static String get dropboxAppKey => _req('DROPBOX_APP_KEY');
-  static String? get anthropicKey => dotenv.maybeGet('ANTHROPIC_API_KEY');
-  static String? get openaiKey => dotenv.maybeGet('OPENAI_API_KEY');
+
+  // --- LLM: OpenAI-compatible provider (Groq default) ---
+  static String get llmKey => _req('GROQ_API_KEY');
+  static const llmBaseUrl = 'api.groq.com';
+  static const llmPath = '/openai/v1/chat/completions';
+  static const llmModel = 'llama-3.3-70b-versatile';
+  // Mistral swap: MISTRAL_API_KEY, 'api.mistral.ai', '/v1/chat/completions',
+  // model e.g. 'mistral-large-latest'.
 
   // --- Dropbox (FR-2, FR-3) ---
   /// Vault folder scoped for reading. Only notes here are considered.
