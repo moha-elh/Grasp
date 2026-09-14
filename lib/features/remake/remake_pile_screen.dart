@@ -41,11 +41,11 @@ class RemakePileScreen extends ConsumerWidget {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(T.gutter, T.s18, T.gutter, T.s18),
             children: [
-              Text('Cards you flagged as badly made, regenerated in one batch, '
-                  'then re-vetted. The daily session is never interrupted.',
+              Text('Cards you flagged as badly made. Regenerate them in a batch, '
+                  'or handle one at a time. The daily session is never interrupted.',
                   style: Typo.bodySmall),
               const SizedBox(height: T.s24),
-              for (final c in pile) _card(c),
+              for (final c in pile) _card(c, ctrl),
             ],
           ),
         ),
@@ -58,7 +58,7 @@ class RemakePileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _card(GraspCard c) => Container(
+  Widget _card(GraspCard c, RemakePileController ctrl) => Container(
         margin: const EdgeInsets.only(bottom: T.s12),
         padding: const EdgeInsets.all(T.s18),
         decoration: BoxDecoration(
@@ -80,7 +80,36 @@ class RemakePileScreen extends ConsumerWidget {
             Text(c.front, style: Typo.body.copyWith(color: T.ink)),
             const SizedBox(height: T.s8),
             Text(c.back, style: Typo.bodySmall),
+            const SizedBox(height: T.s18),
+            Row(
+              children: [
+                Expanded(
+                  child: _action('Keep it', Icons.check, T.appText,
+                      () => ctrl.accept(c.id)),
+                ),
+                const SizedBox(width: T.s12),
+                Expanded(
+                  child: _action('Delete', Icons.delete_outline, T.slipping,
+                      () => ctrl.delete(c.id)),
+                ),
+              ],
+            ),
           ],
+        ),
+      );
+
+  Widget _action(String label, IconData icon, Color color, VoidCallback onTap) =>
+      SizedBox(
+        height: T.hitMin,
+        child: OutlinedButton.icon(
+          onPressed: onTap,
+          icon: Icon(icon, size: 17, color: color),
+          label: Text(label, style: Typo.label.copyWith(color: color, fontSize: 14)),
+          style: OutlinedButton.styleFrom(
+            side: BorderSide(color: color.withValues(alpha: 0.4)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(T.rControl)),
+          ),
         ),
       );
 

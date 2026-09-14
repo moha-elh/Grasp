@@ -35,12 +35,13 @@ class ConceptStats {
   }
 }
 
-/// Deck-level naming vs. mechanism strength (the dual ring, design §05).
+/// Deck-level strength by card type (the ring, design §05).
 class DeckStats {
   final double nameRet; // outer ring - all anchor cards
-  final double explainRet; // inner ring - all mechanism cards
+  final double explainRet; // middle ring - all mechanism cards
+  final double applyRet; // inner ring - all application cards
   final List<ConceptStats> concepts; // sorted by widest gap first
-  const DeckStats(this.nameRet, this.explainRet, this.concepts);
+  const DeckStats(this.nameRet, this.explainRet, this.applyRet, this.concepts);
 }
 
 double _mean(Iterable<double> xs) {
@@ -76,6 +77,7 @@ DeckStats computeDeckStats(List<GraspCard> cards, FsrsService f) {
   return DeckStats(
     _typeMean(cards, CardType.anchor, f),
     _typeMean(cards, CardType.mechanism, f),
+    _typeMean(cards, CardType.application, f),
     concepts,
   );
 }

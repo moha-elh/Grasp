@@ -23,6 +23,21 @@ class RemakePileController extends StateNotifier<List<GraspCard>> {
     // TODO(gen): for each card, LLM.regenerate(sourceExcerpt) → insert as pending
     state = const [];
   }
+
+  /// "I was wrong, keep it": send the card straight back into the deck.
+  void accept(String cardId) {
+    // TODO(auth): CardsRepository.setStatus(cardId, approved) + clear quality
+    _remove(cardId);
+  }
+
+  /// Delete the card for good.
+  void delete(String cardId) {
+    // TODO(auth): CardsRepository.setStatus(cardId, discarded) (or hard delete)
+    _remove(cardId);
+  }
+
+  void _remove(String cardId) =>
+      state = [for (final c in state) if (c.id != cardId) c];
 }
 
 List<GraspCard> _seed(Ref ref) {

@@ -5,6 +5,7 @@ import '../../design/tokens.dart';
 import '../../design/typography.dart';
 import '../../design/widgets/tag.dart';
 import '../../design/widgets/type_badge.dart';
+import '../settings/settings_button.dart';
 import 'mock_explore.dart';
 
 /// Explore tab (screen 11, FR-19/FR-20). Adjacent concepts + cited web cards,
@@ -22,7 +23,13 @@ class ExploreScreen extends ConsumerWidget {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(T.gutter, T.s32, T.gutter, T.s32),
         children: [
-          Text('Explore', style: Typo.display(34)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Explore', style: Typo.display(34)),
+              const SettingsButton(),
+            ],
+          ),
           const SizedBox(height: T.s12),
           Text('Candidates for exposure, not memory. Nothing enters Retention '
               'until you trust it. The stronger path is to dive in and write a '

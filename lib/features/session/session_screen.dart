@@ -9,6 +9,7 @@ import '../review/session_complete_view.dart';
 import '../review/session_controller.dart';
 import '../review/widgets/grading_chips.dart';
 import '../review/widgets/study_card.dart';
+import '../settings/settings_button.dart';
 import '../vetting/vetting_controller.dart';
 import '../vetting/vetting_view.dart';
 
@@ -104,7 +105,14 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text('Session', style: Typo.display(24)),
-        Text('$pos / ${state.queue.length}', style: Typo.mono(size: 11)),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('$pos / ${state.queue.length}', style: Typo.mono(size: 11)),
+            const SizedBox(width: T.s8),
+            const SettingsButton(),
+          ],
+        ),
       ],
     );
   }
@@ -151,12 +159,14 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: T.gutter, vertical: T.s32),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const Align(alignment: Alignment.centerRight, child: SettingsButton()),
+            const Spacer(),
             Text('Nothing due', style: Typo.display(34)),
             const SizedBox(height: T.s12),
             Text('You’re clear for today. Come back tomorrow.', style: Typo.body),
+            const Spacer(flex: 2),
           ],
         ),
       ),

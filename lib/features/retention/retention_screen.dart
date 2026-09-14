@@ -7,7 +7,7 @@ import '../../design/typography.dart';
 import '../../design/widgets/tag.dart';
 import '../remake/remake_controller.dart';
 import '../remake/remake_pile_screen.dart';
-import '../settings/settings_screen.dart';
+import '../settings/settings_button.dart';
 import 'analytics.dart';
 import 'concept_detail_screen.dart';
 import 'widgets/dual_ring.dart';
@@ -34,16 +34,17 @@ class RetentionScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text('Retention', style: Typo.display(34)),
-              IconButton(
-                icon: const Icon(Icons.settings_outlined, color: T.inkMeta),
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                ),
-              ),
+              const SettingsButton(),
             ],
           ),
           const SizedBox(height: T.s24),
-          Center(child: DualRing(name: stats.nameRet, explain: stats.explainRet)),
+          Center(
+            child: TripleRing(
+              name: stats.nameRet,
+              explain: stats.explainRet,
+              apply: stats.applyRet,
+            ),
+          ),
           const SizedBox(height: T.s24),
           _legend(stats),
           const SizedBox(height: T.s32),
@@ -91,11 +92,11 @@ class RetentionScreen extends ConsumerWidget {
   }
 
   Widget _legend(DeckStats s) => Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _legendItem(T.ringName, 'CAN NAME', s.nameRet),
-          const SizedBox(width: T.s32),
-          _legendItem(T.ringExplain, 'CAN EXPLAIN', s.explainRet),
+          _legendItem(T.ringName, 'NAME', s.nameRet),
+          _legendItem(T.ringExplain, 'EXPLAIN', s.explainRet),
+          _legendItem(T.appText, 'APPLY', s.applyRet),
         ],
       );
 
