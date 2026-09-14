@@ -23,7 +23,7 @@ class ExploreScreen extends ConsumerWidget {
         children: [
           Text('Explore', style: Typo.display(34)),
           const SizedBox(height: T.s12),
-          Text('Candidates for exposure — not memory. Nothing enters Retention '
+          Text('Candidates for exposure, not memory. Nothing enters Retention '
               'until you trust it. The stronger path is to dive in and write a '
               'note; the #flashcard tag flows it in on its own.',
               style: Typo.bodySmall),
@@ -80,7 +80,7 @@ class ExploreScreen extends ConsumerWidget {
     );
   }
 
-  // A visible source is mandatory (FR-19/20) — this is the trust layer.
+  // A visible source is mandatory (FR-19/20) - this is the trust layer.
   Widget _citation(ExploreItem item) => Container(
         padding: const EdgeInsets.all(T.s12),
         decoration: BoxDecoration(

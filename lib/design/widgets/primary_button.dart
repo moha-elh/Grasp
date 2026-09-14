@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../tokens.dart';
 import '../typography.dart';
 
-/// Filled primary action — ink background, white label, 52 tall, radius 16.
+/// Filled primary action - ink background, white label, 52 tall, radius 16.
 /// Design system §03. Shows a spinner and disables itself when [busy].
 class PrimaryButton extends StatelessWidget {
   final String label;

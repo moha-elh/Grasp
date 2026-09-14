@@ -8,7 +8,7 @@ import '../session/session_screen.dart';
 
 /// Root navigation: Session · Retention · Explore (§14, FR-18/19).
 /// The tab bar is hidden during an active session so the loop isn't
-/// interrupted — Session drives that via [onSessionActiveChanged].
+/// interrupted - Session drives that via [onSessionActiveChanged].
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 

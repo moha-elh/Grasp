@@ -6,7 +6,7 @@ import '../../data/models/card.dart';
 /// neighbour of the user's own notes; web = new material sourced from the web.
 enum ExploreKind { adjacent, web }
 
-/// An Explore candidate for exposure (FR-19) — NOT a Retention card. It always
+/// An Explore candidate for exposure (FR-19) - NOT a Retention card. It always
 /// carries a visible source ([citation]); a card without one is a bug (FR-20).
 class ExploreItem {
   final String id;

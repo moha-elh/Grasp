@@ -13,7 +13,7 @@ import 'retention_screen.dart' show pct;
 import 'widgets/dual_ring.dart';
 
 /// Concept detail (screen 09, FR-28/FR-29). Per-concept dual ring, a breakdown
-/// by card type, the weakest cards, and "seen N× / X%" as a detail line — never
+/// by card type, the weakest cards, and "seen N× / X%" as a detail line - never
 /// a headline. Primary action: open the note.
 class ConceptDetailScreen extends ConsumerWidget {
   final ConceptStats concept;
@@ -39,9 +39,15 @@ class ConceptDetailScreen extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(T.gutter, T.s18, T.gutter, T.s32),
           children: [
             Center(
-              child: DualRing(
-                  name: concept.nameRet, explain: concept.explainRet, size: 150),
+              child: TripleRing(
+                name: concept.nameRet,
+                explain: concept.explainRet,
+                apply: concept.retOfType(CardType.application, f),
+                size: 156,
+              ),
             ),
+            const SizedBox(height: T.s18),
+            _ringLegend(),
             const SizedBox(height: T.s24),
             _typeBreakdown(f),
             const SizedBox(height: T.s24),
@@ -63,6 +69,30 @@ class ConceptDetailScreen extends ConsumerWidget {
       ),
     );
   }
+
+  Widget _ringLegend() => Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _legendDot(T.ringName, 'Naming'),
+          const SizedBox(width: T.s18),
+          _legendDot(T.ringExplain, 'Mechanism'),
+          const SizedBox(width: T.s18),
+          _legendDot(T.appText, 'Application'),
+        ],
+      );
+
+  Widget _legendDot(Color c, String label) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 9,
+            height: 9,
+            decoration: BoxDecoration(color: c, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 6),
+          Text(label, style: Typo.meta),
+        ],
+      );
 
   // Distinct color per card type so the three bars never blend. Ties Naming to
   // the outer ring (blue) and Mechanism to the inner ring (amber, oklch .62 .14
@@ -94,7 +124,7 @@ class ConceptDetailScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(width: T.s12),
-            Text(has ? pct(v) : '—', style: Typo.mono(size: 11)),
+            Text(has ? pct(v) : 'n/a', style: Typo.mono(size: 11)),
           ],
         ),
       );
@@ -107,7 +137,7 @@ class ConceptDetailScreen extends ConsumerWidget {
     ]);
   }
 
-  /// FR-29: times-seen is a detail, paired with retrievability — and a reading.
+  /// FR-29: times-seen is a detail, paired with retrievability - and a reading.
   Widget _seenLine(double mean) {
     final tooFat = concept.timesSeen >= 8 && mean < 0.6;
     return Container(
@@ -123,7 +153,7 @@ class ConceptDetailScreen extends ConsumerWidget {
               style: Typo.body.copyWith(color: T.ink)),
           if (tooFat) ...[
             const SizedBox(height: T.s8),
-            Text('Seen a lot but recall is low — the cards may be too fat. '
+            Text('Seen a lot but recall is low. The cards may be too fat. '
                 'Split them into smaller, atomic cards.', style: Typo.bodySmall),
           ],
         ],

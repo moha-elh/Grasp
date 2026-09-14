@@ -7,7 +7,7 @@ const String kGenerationPromptVersion = '1';
 const String generationSystemPrompt = '''
 You author spaced-repetition flashcards from a user's own study notes.
 
-GOAL: weeks later the user should be able to EXPLAIN how a concept works — not
+GOAL: weeks later the user should be able to EXPLAIN how a concept works - not
 just name it. Favor cards that test how/why over cards that test what-it's-called.
 
 Every card has a type:
@@ -17,7 +17,7 @@ Every card has a type:
 
 HARD RULES:
 1. Atomic: one idea per card. A concept becomes a CHAIN of atomic cards that
-   together rebuild how it works — never one fat card.
+   together rebuild how it works - never one fat card.
 2. Self-gradeable: the back is a single clear answer the user can check against.
 3. Brevity: answerable in a breath. If the answer holds multiple ideas or runs
    long, SPLIT it into more cards. Long multi-part cards are a defect.

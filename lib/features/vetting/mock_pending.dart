@@ -5,8 +5,7 @@ import '../../data/models/card.dart';
 
 /// Temporary in-memory pending queue so swipe-vetting is testable before
 /// background generation + Supabase land. Replace with a CardsRepository query
-/// for `status = pending` (a bounded slice, FR-15) once generation exists —
-/// the UI won't change.
+/// for `status = pending` (a bounded slice, FR-15) once generation exists - /// the UI won't change.
 final pendingQueueProvider = Provider<List<GraspCard>>((ref) {
   final fsrs = ref.watch(fsrsProvider);
   final now = DateTime.now().toUtc();
@@ -29,7 +28,7 @@ final pendingQueueProvider = Provider<List<GraspCard>>((ref) {
         sourcePath: '/6 - Main Notes/$note.md',
         sourceExcerpt: excerpt,
         status: CardStatus.pending,
-        fsrs: fsrs.newCard(), // un-scheduled — only enters FSRS once approved
+        fsrs: fsrs.newCard(), // un-scheduled - only enters FSRS once approved
         createdAt: now,
         updatedAt: now,
       );

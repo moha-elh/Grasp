@@ -72,14 +72,16 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
             _header(state),
             const SizedBox(height: T.s18),
             Expanded(
-              child: SingleChildScrollView(
-                child: StudyCard(
-                  card: card,
-                  revealed: state.revealed,
-                  retrievability: fsrs.retrievability(card),
-                  remaining: state.remaining,
-                  onReveal: ctrl.reveal,
-                  onOpenSource: () => _showSource(card),
+              child: Center(
+                child: SingleChildScrollView(
+                  child: StudyCard(
+                    card: card,
+                    revealed: state.revealed,
+                    retrievability: fsrs.retrievability(card),
+                    remaining: state.remaining,
+                    onReveal: ctrl.reveal,
+                    onOpenSource: () => _showSource(card),
+                  ),
                 ),
               ),
             ),
@@ -112,7 +114,7 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       backgroundColor: T.ink,
       content: Text(
-        'Flagged as badly made — not because it’s hard. Hard cards stay.',
+        'Flagged as badly made, not because it’s hard. Hard cards stay.',
         style: Typo.bodySmall.copyWith(color: T.surface),
       ),
       duration: const Duration(seconds: 3),

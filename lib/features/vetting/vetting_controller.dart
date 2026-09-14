@@ -34,7 +34,7 @@ class VettingState {
 }
 
 /// Drives the bounded swipe-vetting batch (FR-14, FR-15). Against mock pending
-/// cards for now; outcomes don't persist yet — see the TODOs.
+/// cards for now; outcomes don't persist yet - see the TODOs.
 final vettingControllerProvider =
     StateNotifierProvider.autoDispose<VettingController, VettingState>(
   (ref) => VettingController(ref.watch(pendingQueueProvider)),

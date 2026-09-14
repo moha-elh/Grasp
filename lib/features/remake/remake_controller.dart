@@ -5,11 +5,11 @@ import '../../data/models/card.dart';
 
 /// The Remake pile (FR-26): approved cards the user disliked (badly made) are
 /// pulled from review and parked here as `remake_pending`, cleared in a batch
-/// — never mid-session. Regenerated cards re-enter through swipe vetting.
+/// - never mid-session. Regenerated cards re-enter through swipe vetting.
 ///
 /// Mock pile for now; replace `_seed` with a CardsRepository query for
 /// `status = remake_pending` once auth lands. Regeneration is stubbed to just
-/// empty the pile — wire it to LLM regenerate → `pending` when generation exists.
+/// empty the pile - wire it to LLM regenerate → `pending` when generation exists.
 final remakePileProvider =
     StateNotifierProvider.autoDispose<RemakePileController, List<GraspCard>>(
   (ref) => RemakePileController(_seed(ref)),
@@ -59,14 +59,14 @@ List<GraspCard> _seed(Ref ref) {
       type: CardType.mechanism,
       front: 'Explain everything about how hash tables handle collisions.',
       back: 'Chaining stores colliding keys in a per-bucket list; open '
-          'addressing probes for the next free slot. (Too broad — split.)',
+          'addressing probes for the next free slot. (Too broad, split it.)',
     ),
     card(
       id: 'r2',
       note: 'TCP',
       type: CardType.anchor,
       front: 'What is TCP?',
-      back: 'A protocol. (Vague — says nothing testable.)',
+      back: 'A protocol. (Vague, says nothing testable.)',
     ),
   ];
 }

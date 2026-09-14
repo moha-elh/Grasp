@@ -45,7 +45,7 @@ class Typo {
     color: T.inkBody,
   );
 
-  /// Meta text — never below .58 opacity.
+  /// Meta text - never below .58 opacity.
   static TextStyle meta = GoogleFonts.workSans(
     fontSize: 13,
     height: 1.5,
@@ -60,7 +60,7 @@ class Typo {
         color: color ?? T.inkMeta,
       );
 
-  /// Tappable label — minimum 14.
+  /// Tappable label - minimum 14.
   static TextStyle label = GoogleFonts.workSans(
     fontSize: 14,
     fontWeight: FontWeight.w600,

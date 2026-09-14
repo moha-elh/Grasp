@@ -53,13 +53,13 @@ class CardsRepository {
 
   int get pendingQueueLimit => 20;
 
-  /// Count of pending cards — background generation pauses at the target (FR-7).
+  /// Count of pending cards - background generation pauses at the target (FR-7).
   Future<int> pendingCount() async {
     final rows = await _t.select('id').eq('status', 'pending').count();
     return rows.count;
   }
 
-  /// Cards due for review now — served IN FULL, never capped (FR-17).
+  /// Cards due for review now - served IN FULL, never capped (FR-17).
   Future<List<GraspCard>> dueCards() async {
     final rows = await _t
         .select()
@@ -94,7 +94,7 @@ class CardsRepository {
       }).eq('id', cardId);
 
   /// Like/dislike quality signal (FR-24). Disliking an in-deck card moves it to
-  /// the Remake pile (FR-26) — the caller decides that; this just sets fields.
+  /// the Remake pile (FR-26) - the caller decides that; this just sets fields.
   Future<void> setQuality(String cardId, Quality quality) => _t.update({
         'quality': quality.name,
         'updated_at': DateTime.now().toUtc().toIso8601String(),

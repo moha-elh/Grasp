@@ -12,10 +12,10 @@ import '../../../design/widgets/type_badge.dart';
 /// Right → accept, left → discard, up → accept + edit. Buttons mirror swipes.
 ///
 /// ponytail: instant snap-back on a short drag (no spring animation) and no
-/// fly-off exit — the next card just replaces this one. Add a fling animation
+/// fly-off exit - the next card just replaces this one. Add a fling animation
 /// if the motion feels abrupt on device.
 ///
-/// NOTE: pan/swipe is unreliable with a mouse on web — verify and tune the
+/// NOTE: pan/swipe is unreliable with a mouse on web - verify and tune the
 /// gesture on a real touch device. The mirror buttons in [VettingView] are the
 /// working path everywhere in the meantime.
 class VettingCard extends StatefulWidget {

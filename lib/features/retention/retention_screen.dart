@@ -50,7 +50,7 @@ class RetentionScreen extends ConsumerWidget {
           const SizedBox(height: T.s18),
           _remakeEntry(context, ref),
           const SizedBox(height: T.s32),
-          Text('BY CONCEPT — WIDEST GAP FIRST', style: Typo.mono(size: 10)),
+          Text('BY CONCEPT · WIDEST GAP FIRST', style: Typo.mono(size: 10)),
           const SizedBox(height: T.s12),
           for (final c in stats.concepts) _conceptRow(context, c, f),
         ],
@@ -130,7 +130,7 @@ class RetentionScreen extends ConsumerWidget {
           children: [
             Text('90-DAY TREND', style: Typo.mono(size: 10)),
             const SizedBox(height: T.s8),
-            Text('Not enough history yet — the naming vs. mechanism trend '
+            Text('Not enough history yet. The naming vs. mechanism trend '
                 'appears after 14 days of reviews.', style: Typo.bodySmall),
           ],
         ),

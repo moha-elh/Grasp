@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
 
-/// Grasp design tokens — the porcelain palette + scales from the design system
+/// Grasp design tokens - the porcelain palette + scales from the design system
 /// (docs/Grasp Design System.dc.html). Light mode only in v1. oklch values were
-/// precomputed to sRGB. Do not hardcode colors/spacing elsewhere — use these.
+/// precomputed to sRGB. Do not hardcode colors/spacing elsewhere - use these.
 class T {
   T._();
 
@@ -12,7 +12,7 @@ class T {
   static const surfaceSunk = Color(0xFFE5E8EC); // tab bar, card stack layers
   static const ink = Color(0xFF141A22); // primary text, primary button
 
-  /// Ink alphas — body .72, meta .60 (never below .58), hairline .12.
+  /// Ink alphas - body .72, meta .60 (never below .58), hairline .12.
   static const inkBody = Color(0xB8141A22); // .72
   static const inkMeta = Color(0x99141A22); // .60
   static const inkMetaMin = Color(0x94141A22); // .58 floor for meta text
@@ -23,15 +23,15 @@ class T {
   static const accentDark = Color(0xFF0068AD); // links hover, headings
   static const bead = Color(0xFF1F86CD); // recall bead sample
 
-  // === Color: retention health — full opacity only, never decorative ===
+  // === Color: retention health - full opacity only, never decorative ===
   static const solid = accent; // retrievability >= 80%
   static const softening = Color(0xFFC26E12); // 50–79%   oklch(.62 .14 60)
   static const slipping = Color(0xFFC74B47); // < 50% and Again  oklch(.58 .16 25)
   static const again = Color(0xFFD55753); // Again grading chip fill
 
-  // === Dual ring (screen 08) — one distinct color per arc ===
+  // === Dual ring (screen 08) - one distinct color per arc ===
   static const ringName = accent; // outer arc: anchor / "can name" (blue)
-  static const ringExplain = Color(0xFFC26E12); // inner arc: mechanism — oklch(.62 .14 60) amber
+  static const ringExplain = Color(0xFFC26E12); // inner arc: mechanism - oklch(.62 .14 60) amber
 
   // === Card-type badge colors (outline only) ===
   static const mechText = Color(0xFF005998);

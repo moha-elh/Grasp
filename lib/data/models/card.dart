@@ -1,6 +1,6 @@
 import 'package:fsrs/fsrs.dart' as fsrs_pkg;
 
-/// How/why vs. what — drives generation mix (FR-8) and analytics (FR-28).
+/// How/why vs. what - drives generation mix (FR-8) and analytics (FR-28).
 enum CardType {
   anchor, // naming / definition
   mechanism, // why / how it works
@@ -30,7 +30,7 @@ class GraspCard {
   final CardStatus status;
   final Quality? quality;
 
-  /// Full serialized FSRS card — the source of truth (§8).
+  /// Full serialized FSRS card - the source of truth (§8).
   final Map<String, dynamic> fsrs;
 
   // Promoted columns for indexing/display (§8).

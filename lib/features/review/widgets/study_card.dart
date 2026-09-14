@@ -27,22 +27,18 @@ class StudyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: T.surfaceSunk,
-        borderRadius: BorderRadius.circular(T.rControl),
-      ),
-      padding: const EdgeInsets.fromLTRB(22, 26, 22, 22),
-      child: Stack(
-        children: [
-          if (remaining > 2) _peek(top: 0, inset: 24, color: const Color(0xFFDDE1E6)),
-          if (remaining > 1) _peek(top: 6, inset: 14, color: const Color(0xFFE9ECEF)),
-          Padding(
-            padding: EdgeInsets.only(top: remaining > 1 ? 14 : 0),
-            child: _mainCard(),
-          ),
-        ],
-      ),
+    // Subtle stacked peek behind the white card = cards remaining. No gray box;
+    // the card itself matches the vetting card (white, rounded, shadowed).
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        if (remaining > 2) _peek(top: 0, inset: 26, color: const Color(0xFFDDE1E6)),
+        if (remaining > 1) _peek(top: 7, inset: 14, color: const Color(0xFFE9ECEF)),
+        Padding(
+          padding: EdgeInsets.only(top: remaining > 1 ? 16 : 0),
+          child: _mainCard(),
+        ),
+      ],
     );
   }
 
@@ -52,10 +48,10 @@ class StudyCard extends StatelessWidget {
         left: inset,
         right: inset,
         child: Container(
-          height: 40,
+          height: 44,
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(T.rCard),
             border: Border.all(color: T.hairline),
           ),
         ),
@@ -73,10 +69,10 @@ class StudyCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: T.surface,
             borderRadius: BorderRadius.circular(T.rCard),
-            border: Border.all(color: const Color(0x14141A22)),
+            border: Border.all(color: T.hairline),
             boxShadow: T.cardShadow,
           ),
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(22),
           child: revealed ? _revealed() : _question(),
         ),
       ),

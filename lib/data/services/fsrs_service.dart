@@ -3,7 +3,7 @@ import 'package:fsrs/fsrs.dart' as fsrs;
 import '../models/card.dart';
 import '../models/review_log.dart';
 
-/// Pure FSRS scheduling (FR-21, FR-22). No IO — persistence is the repo's job.
+/// Pure FSRS scheduling (FR-21, FR-22). No IO - persistence is the repo's job.
 /// The single scheduler instance holds the model weights; swap in optimized
 /// parameters here later without touching callers.
 class FsrsService {
@@ -51,7 +51,7 @@ class FsrsService {
     );
   }
 
-  /// The interval each grade would schedule, WITHOUT persisting — shown on the
+  /// The interval each grade would schedule, WITHOUT persisting - shown on the
   /// grading chips before the user picks one (design §07 "grading intervals").
   Map<fsrs.Rating, Duration> previewIntervals(GraspCard card, {DateTime? at}) {
     final now = (at ?? DateTime.now()).toUtc();

@@ -37,8 +37,8 @@ class ConceptStats {
 
 /// Deck-level naming vs. mechanism strength (the dual ring, design §05).
 class DeckStats {
-  final double nameRet; // outer ring — all anchor cards
-  final double explainRet; // inner ring — all mechanism cards
+  final double nameRet; // outer ring - all anchor cards
+  final double explainRet; // inner ring - all mechanism cards
   final List<ConceptStats> concepts; // sorted by widest gap first
   const DeckStats(this.nameRet, this.explainRet, this.concepts);
 }

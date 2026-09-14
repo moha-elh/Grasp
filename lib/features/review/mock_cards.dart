@@ -4,7 +4,7 @@ import '../../data/models/card.dart';
 
 /// Temporary in-memory session queue so the review loop is testable before
 /// Supabase/auth land. Replace this provider with a CardsRepository-backed
-/// query (dueCards + newCards) once sign-in exists — the UI won't change.
+/// query (dueCards + newCards) once sign-in exists - the UI won't change.
 final sessionQueueProvider = Provider<List<GraspCard>>((_) => _mockCards);
 
 /// Seeds a review-state FSRS card so the recall bead shows a plausible

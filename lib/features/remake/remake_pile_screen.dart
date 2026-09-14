@@ -41,7 +41,7 @@ class RemakePileScreen extends ConsumerWidget {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(T.gutter, T.s18, T.gutter, T.s18),
             children: [
-              Text('Cards you flagged as badly made — regenerated in one batch, '
+              Text('Cards you flagged as badly made, regenerated in one batch, '
                   'then re-vetted. The daily session is never interrupted.',
                   style: Typo.bodySmall),
               const SizedBox(height: T.s24),

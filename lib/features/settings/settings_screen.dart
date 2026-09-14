@@ -30,8 +30,8 @@ class SettingsScreen extends ConsumerWidget {
             _section('SESSION'),
             _throttle(ref),
             const SizedBox(height: T.s12),
-            _readonly('Due reviews are always served in full and never capped — '
-                'retention depends on them.'),
+            _readonly('Due reviews are always served in full and never capped. '
+                'Retention depends on them.'),
             const SizedBox(height: T.s32),
             _section('NOTES'),
             _dropbox(ref),
@@ -74,7 +74,7 @@ class SettingsScreen extends ConsumerWidget {
           onChanged: (v) =>
               ref.read(newCardsPerDayProvider.notifier).state = v.round(),
         ),
-        Text('Raising this means more new cards now — and a heavier review load '
+        Text('Raising this means more new cards now, and a heavier review load '
             'in the weeks after, since every new card keeps coming back until '
             'it sticks.', style: Typo.bodySmall),
       ],
@@ -118,7 +118,7 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   /// Read-only target proportions for background generation (FR-8). The mix is
-  /// mechanism-weighted — the app's goal is explaining, not just naming.
+  /// mechanism-weighted - the app's goal is explaining, not just naming.
   Widget _mix() => _panel(Column(
         children: const [
           _MixRow('Anchor', 'naming / definition', 0.25),
@@ -132,7 +132,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget _signOut(BuildContext context) => _panel(GestureDetector(
         onTap: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           backgroundColor: T.ink,
-          content: Text('Sign-in isn’t set up yet — it’s the last thing to wire.',
+          content: Text('Sign-in isn’t set up yet. It’s the last thing to wire.',
               style: Typo.bodySmall.copyWith(color: T.surface)),
         )),
         child: Row(

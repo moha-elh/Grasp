@@ -4,7 +4,7 @@ import '../../data/models/card.dart';
 
 /// Temporary in-memory Retention deck (approved cards with review history) so
 /// analytics is buildable before Supabase/auth land. Replace with a
-/// CardsRepository query for `status = approved` — the analytics + UI won't
+/// CardsRepository query for `status = approved` - the analytics + UI won't
 /// change. Retrievability is derived by FSRS from the seeded stability/lastReview.
 final deckProvider = Provider<List<GraspCard>>((_) {
   final now = DateTime.now().toUtc();
@@ -49,7 +49,7 @@ final deckProvider = Provider<List<GraspCard>>((_) {
       );
 
   return [
-    // Liskov: can name it, can't explain it — the widest name/mechanism gap.
+    // Liskov: can name it, can't explain it - the widest name/mechanism gap.
     card(id: 'd1', note: 'Liskov Substitution', type: CardType.anchor, reps: 9,
         front: 'What does the Liskov Substitution Principle state?',
         back: 'Subtypes must be substitutable for their base type without '
@@ -73,7 +73,7 @@ final deckProvider = Provider<List<GraspCard>>((_) {
         back: 'When clients may retry and duplicate side effects must be '
             'prevented (e.g. a charge).', stability: 20, daysAgo: 6),
 
-    // B-Tree: shaky — both low, mechanism lower.
+    // B-Tree: shaky - both low, mechanism lower.
     card(id: 'd6', note: 'B-Tree', type: CardType.anchor, reps: 6, lapses: 1,
         front: 'What is a B-tree?',
         back: 'A balanced, high-fanout search tree keeping data sorted for '

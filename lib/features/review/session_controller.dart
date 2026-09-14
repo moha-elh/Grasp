@@ -35,7 +35,7 @@ class SessionState {
 }
 
 /// Drives one review session (FR-16, FR-22, FR-25/26). Against mock cards for
-/// now; grading/flagging don't yet persist — see the TODOs.
+/// now; grading/flagging don't yet persist - see the TODOs.
 final sessionControllerProvider =
     StateNotifierProvider.autoDispose<SessionController, SessionState>(
   (ref) => SessionController(ref.watch(sessionQueueProvider)),
@@ -59,7 +59,7 @@ class SessionController extends StateNotifier<SessionState> {
   }
 
   /// Flag = badly made (FR-25). Removes the card from the session and sends it
-  /// to the remake pile (FR-26) — never touches FSRS state.
+  /// to the remake pile (FR-26) - never touches FSRS state.
   void flag() {
     if (state.isComplete) return;
     // TODO(auth): CardsRepository.setQuality(disliked) + status=remake_pending

@@ -16,8 +16,7 @@ class GeneratedCard {
 
 /// Authors flashcards from note text via an OpenAI-compatible LLM API
 /// (FR-6, text-only in v1 FR-5). Provider/model configured in Config (Groq
-/// default; Mistral is a drop-in swap). The prompt (generation_prompt.dart) —
-/// not this glue — is the product.
+/// default; Mistral is a drop-in swap). The prompt (generation_prompt.dart) - /// not this glue - is the product.
 class LlmService {
   final http.Client _http;
   LlmService([http.Client? client]) : _http = client ?? http.Client();

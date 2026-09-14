@@ -35,7 +35,7 @@ class SessionCompleteView extends StatelessWidget {
             if (flagged > 0) _line('$flagged sent to the remake pile'),
             _line(nextDue),
             const SizedBox(height: T.s24),
-            Text('That’s the session. Close the app — retention is about coming '
+            Text('That’s the session. Close the app: retention is about coming '
                 'back tomorrow, not staying now.', style: Typo.body),
             const SizedBox(height: T.s32),
             GestureDetector(
@@ -53,7 +53,7 @@ class SessionCompleteView extends StatelessWidget {
   Widget _line(String text) => Padding(
         padding: const EdgeInsets.only(bottom: T.s8),
         child: Row(children: [
-          Text('— ', style: Typo.body),
+          Text('·  ', style: Typo.body),
           Flexible(child: Text(text, style: Typo.body)),
         ]),
       );

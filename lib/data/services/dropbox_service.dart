@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 
 import '../../core/config.dart';
 
-/// A note read from the vault. Read-only — the app never writes back (FR-4).
+/// A note read from the vault. Read-only - the app never writes back (FR-4).
 class VaultNote {
   final String path;
   final String content;

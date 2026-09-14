@@ -1,5 +1,5 @@
 /// Short FSRS interval label for grading chips: "10m", "3h", "2d", "3mo", "1y".
-/// Rounds to the largest sensible unit — cards are answered in a breath, the
+/// Rounds to the largest sensible unit - cards are answered in a breath, the
 /// label just needs to say roughly when it comes back.
 String formatInterval(Duration d) {
   final mins = d.inMinutes;
