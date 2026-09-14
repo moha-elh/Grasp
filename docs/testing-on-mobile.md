@@ -19,7 +19,7 @@ so the connect + generate steps only work on a device, not in Chrome.
    immediately): Supabase dashboard → Authentication → Providers → Email →
    turn **Confirm email** off. (Or leave it on and confirm via the email link.)
 3. **Dropbox app console** (https://www.dropbox.com/developers/apps):
-   - Your app must have **Full Dropbox** access (not App folder) — the vault
+   - Your app must have **Full Dropbox** access (not App folder) - the vault
      lives inside Remotely Save's folder, which App-folder can't reach.
    - Under **OAuth 2 → Redirect URIs**, add exactly: `grasp://auth`
    - Permissions: `files.metadata.read` and `files.content.read`. Click
@@ -49,7 +49,7 @@ so the connect + generate steps only work on a device, not in Chrome.
 
 1. Connect the phone by USB. Set the USB mode to **File transfer / Android
    Auto** (not "charging only") if prompted.
-2. A prompt **"Allow USB debugging?"** appears on the phone — check "Always
+2. A prompt **"Allow USB debugging?"** appears on the phone - check "Always
    allow from this computer" and tap **Allow**.
 
 ## 3. Confirm the tooling sees the device
@@ -80,7 +80,7 @@ First build takes a few minutes. Leave it running: press `r` to hot reload,
 To install a standalone build instead (no cable needed after):
 ```powershell
 flutter build apk --release
-# APK lands in build/app/outputs/flutter-apk/app-release.apk — copy it to the phone and install.
+# APK lands in build/app/outputs/flutter-apk/app-release.apk - copy it to the phone and install.
 ```
 
 ---
@@ -92,7 +92,7 @@ Go through these in order and confirm each works:
 **Sign in**
 - [ ] App opens on the Sign-in screen.
 - [ ] "Create an account" → enter email + password → you land past the gate
-      (if it says check your email, confirmation is still on — see step 0.2).
+      (if it says check your email, confirmation is still on - see step 0.2).
 - [ ] Kill and reopen the app: it should skip sign-in (session persists).
 
 **Connect Dropbox**
@@ -109,7 +109,7 @@ Go through these in order and confirm each works:
 - [ ] In the Supabase dashboard, `cards` has rows with `status = pending`.
 
 > Note: at this stage the vetting/review/deck screens still show sample
-> (mock) data — wiring the generated cards into those screens is the next
+> (mock) data - wiring the generated cards into those screens is the next
 > feature (persistence). This checklist verifies generation writes to Supabase.
 
 **Review loop (sample data)**
