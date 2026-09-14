@@ -22,7 +22,7 @@ class RetentionScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final stats = ref.watch(deckStatsProvider);
+    final statsAsync = ref.watch(deckStatsProvider);
     final f = ref.read(fsrsProvider);
 
     return SafeArea(
@@ -38,26 +38,47 @@ class RetentionScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: T.s24),
-          Center(
-            child: TripleRing(
-              name: stats.nameRet,
-              explain: stats.explainRet,
-              apply: stats.applyRet,
-            ),
+          ...statsAsync.when(
+            loading: () => [
+              const SizedBox(height: T.s32),
+              const Center(child: CircularProgressIndicator()),
+            ],
+            error: (e, _) => [
+              const SizedBox(height: T.s32),
+              Text('Could not load your deck.\n$e',
+                  textAlign: TextAlign.center,
+                  style: Typo.bodySmall.copyWith(color: T.slipping)),
+            ],
+            data: (stats) => _deck(context, ref, stats, f),
           ),
-          const SizedBox(height: T.s24),
-          _legend(stats),
-          const SizedBox(height: T.s32),
-          _curvePlaceholder(),
-          const SizedBox(height: T.s18),
-          _remakeEntry(context, ref),
-          const SizedBox(height: T.s32),
-          Text('BY CONCEPT · WIDEST GAP FIRST', style: Typo.mono(size: 10)),
-          const SizedBox(height: T.s12),
-          for (final c in stats.concepts) _conceptRow(context, c, f),
         ],
       ),
     );
+  }
+
+  List<Widget> _deck(
+      BuildContext context, WidgetRef ref, DeckStats stats, f) {
+    return [
+      Center(
+        child: TripleRing(
+          name: stats.nameRet,
+          explain: stats.explainRet,
+          apply: stats.applyRet,
+        ),
+      ),
+      const SizedBox(height: T.s24),
+      _legend(stats),
+      const SizedBox(height: T.s32),
+      _curvePlaceholder(),
+      const SizedBox(height: T.s18),
+      _remakeEntry(context, ref),
+      const SizedBox(height: T.s32),
+      if (stats.concepts.isNotEmpty) ...[
+        Text('BY CONCEPT · WIDEST GAP FIRST', style: Typo.mono(size: 10)),
+        const SizedBox(height: T.s12),
+        for (final c in stats.concepts) _conceptRow(context, c, f),
+      ],
+    ];
   }
 
   /// Screen 10 is reachable from Retention only (FR-26), never mid-session.

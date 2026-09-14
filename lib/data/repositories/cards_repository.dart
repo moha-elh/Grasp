@@ -104,4 +104,10 @@ class CardsRepository {
     final rows = await _t.select().eq('status', 'remake_pending');
     return rows.map(GraspCard.fromJson).toList();
   }
+
+  /// Whole approved deck (any review state) for the Retention analytics (FR-27).
+  Future<List<GraspCard>> approvedDeck() async {
+    final rows = await _t.select().eq('status', 'approved').order('created_at');
+    return rows.map(GraspCard.fromJson).toList();
+  }
 }

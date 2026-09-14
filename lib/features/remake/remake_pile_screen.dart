@@ -17,7 +17,7 @@ class RemakePileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pile = ref.watch(remakePileProvider);
+    final state = ref.watch(remakePileProvider);
     final ctrl = ref.read(remakePileProvider.notifier);
 
     return Scaffold(
@@ -29,7 +29,11 @@ class RemakePileScreen extends ConsumerWidget {
       ),
       body: SafeArea(
         top: false,
-        child: pile.isEmpty ? _empty() : _list(context, pile, ctrl),
+        child: state.loading
+            ? const Center(child: CircularProgressIndicator())
+            : state.isEmpty
+                ? _empty()
+                : _list(context, state.pile, ctrl),
       ),
     );
   }

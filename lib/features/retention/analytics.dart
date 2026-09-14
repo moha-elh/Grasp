@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers.dart';
 import '../../data/models/card.dart';
 import '../../data/services/fsrs_service.dart';
-import 'mock_deck.dart';
 
 /// Per-concept retention rollup (FR-27, FR-28). A "concept" is one source note.
 class ConceptStats {
@@ -82,7 +81,12 @@ DeckStats computeDeckStats(List<GraspCard> cards, FsrsService f) {
   );
 }
 
-/// Retention analytics over the (currently mock) approved deck.
-final deckStatsProvider = Provider<DeckStats>((ref) {
-  return computeDeckStats(ref.watch(deckProvider), ref.watch(fsrsProvider));
+/// The approved deck (all review states) from Supabase.
+final deckCardsProvider = FutureProvider.autoDispose<List<GraspCard>>(
+    (ref) => ref.watch(cardsRepoProvider).approvedDeck());
+
+/// Retention analytics over the approved deck.
+final deckStatsProvider = FutureProvider.autoDispose<DeckStats>((ref) async {
+  final cards = await ref.watch(deckCardsProvider.future);
+  return computeDeckStats(cards, ref.watch(fsrsProvider));
 });

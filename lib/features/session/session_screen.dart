@@ -40,6 +40,14 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
   Widget build(BuildContext context) {
     // Phase 1: swipe-vet the bounded pending batch (FR-15), then reviews.
     final vet = ref.watch(vettingControllerProvider);
+    if (vet.loading) {
+      _syncActive(false);
+      return _loading();
+    }
+    if (vet.error != null) {
+      _syncActive(false);
+      return _error(vet.error!);
+    }
     if (!vet.isEmpty && !vet.isComplete) {
       _syncActive(true);
       return const VettingView();
@@ -49,6 +57,14 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
     final ctrl = ref.read(sessionControllerProvider.notifier);
     final fsrs = ref.read(fsrsProvider);
 
+    if (state.loading) {
+      _syncActive(false);
+      return _loading();
+    }
+    if (state.error != null) {
+      _syncActive(false);
+      return _error(state.error!);
+    }
     if (state.isEmpty) {
       _syncActive(false);
       return _emptyState();
@@ -154,6 +170,28 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
       ),
     );
   }
+
+  Widget _loading() => const SafeArea(
+        child: Center(child: CircularProgressIndicator()),
+      );
+
+  Widget _error(String message) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: T.gutter, vertical: T.s32),
+          child: Column(
+            children: [
+              const Align(alignment: Alignment.centerRight, child: SettingsButton()),
+              Expanded(
+                child: Center(
+                  child: Text("Couldn't load your cards.\n$message",
+                      textAlign: TextAlign.center,
+                      style: Typo.bodySmall.copyWith(color: T.slipping)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
 
   Widget _emptyState() {
     return SafeArea(

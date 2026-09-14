@@ -21,17 +21,17 @@ GraspCard _c(String id) {
 
 void main() {
   test('regenerateAll empties the pile in one batch', () {
-    final ctrl = RemakePileController([_c('r1'), _c('r2')]);
+    final ctrl = RemakePileController.seeded([_c('r1'), _c('r2')]);
     expect(ctrl.state.length, 2);
     ctrl.regenerateAll();
-    expect(ctrl.state, isEmpty);
+    expect(ctrl.state.pile, isEmpty);
   });
 
   test('accept and delete each remove one card', () {
-    final ctrl = RemakePileController([_c('r1'), _c('r2'), _c('r3')]);
+    final ctrl = RemakePileController.seeded([_c('r1'), _c('r2'), _c('r3')]);
     ctrl.accept('r1');
-    expect(ctrl.state.map((c) => c.id), ['r2', 'r3']);
+    expect(ctrl.state.pile.map((c) => c.id), ['r2', 'r3']);
     ctrl.delete('r3');
-    expect(ctrl.state.map((c) => c.id), ['r2']);
+    expect(ctrl.state.pile.map((c) => c.id), ['r2']);
   });
 }
