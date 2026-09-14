@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../design/tokens.dart';
 import '../../design/typography.dart';
+import '../../design/widgets/tag.dart';
 import '../../design/widgets/type_badge.dart';
 import 'mock_explore.dart';
 
@@ -113,20 +114,9 @@ class ExploreScreen extends ConsumerWidget {
         ),
       );
 
-  Widget _kindBadge(ExploreKind kind) {
-    final (label, color) = kind == ExploreKind.web
-        ? ('WEB', T.accent)
-        : ('ADJACENT', T.softening);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(T.rBadge),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
-      ),
-      child: Text(label,
-          style: Typo.mono(size: 9.5, color: color).copyWith(fontWeight: FontWeight.w600)),
-    );
-  }
+  Widget _kindBadge(ExploreKind kind) => kind == ExploreKind.web
+      ? const Tag('Web', T.accent)
+      : const Tag('Adjacent', T.softening);
 
   Widget _empty() => Padding(
         padding: const EdgeInsets.only(top: T.s32),

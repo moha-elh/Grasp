@@ -2,48 +2,26 @@ import 'package:flutter/widgets.dart';
 
 import '../../data/models/card.dart';
 import '../tokens.dart';
-import '../typography.dart';
+import 'tag.dart';
 
-/// Outline-only badge for card type (FR-8) and lifecycle states. Filled pills
-/// are reserved for actions, so these are always border + colored text.
-/// Design system §04 Type badges.
+/// Tinted tag for card type (FR-8) and lifecycle states. Colors match the app's
+/// type scheme everywhere: Naming/anchor = blue, Mechanism = amber, Application
+/// = green. Design system §04 Type badges (quiet metadata, not actions).
 class TypeBadge extends StatelessWidget {
   final String label;
-  final Color textColor;
-  final Color borderColor;
+  final Color color;
 
-  const TypeBadge._(this.label, this.textColor, this.borderColor);
+  const TypeBadge._(this.label, this.color);
 
-  factory TypeBadge.type(CardType type) {
-    switch (type) {
-      case CardType.anchor:
-        return const TypeBadge._('ANCHOR', T.inkBody, T.hairline);
-      case CardType.mechanism:
-        return const TypeBadge._('MECHANISM', T.mechText, T.mechBorder);
-      case CardType.application:
-        return const TypeBadge._('APPLICATION', T.appText, T.appBorder);
-    }
-  }
+  factory TypeBadge.type(CardType type) => switch (type) {
+        CardType.anchor => const TypeBadge._('Anchor', T.ringName),
+        CardType.mechanism => const TypeBadge._('Mechanism', T.ringExplain),
+        CardType.application => const TypeBadge._('Application', T.appText),
+      };
 
-  factory TypeBadge.remake() =>
-      const TypeBadge._('REMAKE', T.remakeText, T.remakeBorder);
-  factory TypeBadge.pending() =>
-      const TypeBadge._('PENDING', T.inkMeta, Color(0x2E141A22));
+  factory TypeBadge.remake() => const TypeBadge._('Remake', T.remakeText);
+  factory TypeBadge.pending() => const TypeBadge._('Pending', T.inkMeta);
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(T.rBadge),
-        border: Border.all(color: borderColor),
-      ),
-      child: Text(
-        label,
-        style: Typo.mono(size: 9.5, color: textColor).copyWith(
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Tag(label, color);
 }

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers.dart';
 import '../../design/tokens.dart';
 import '../../design/typography.dart';
+import '../../design/widgets/tag.dart';
 import '../remake/remake_controller.dart';
 import '../remake/remake_pile_screen.dart';
 import '../settings/settings_screen.dart';
@@ -188,14 +189,6 @@ class RetentionScreen extends ConsumerWidget {
         : gap >= 0.15
             ? T.softening
             : T.inkMeta;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(T.rBadge),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
-      ),
-      child: Text('${pts >= 0 ? '+' : ''}$pts pt gap',
-          style: Typo.mono(size: 9.5, color: color)),
-    );
+    return Tag('${pts >= 0 ? '+' : ''}$pts pt gap', color);
   }
 }
