@@ -64,6 +64,15 @@ class ConceptDetailScreen extends ConsumerWidget {
     );
   }
 
+  // Distinct color per card type so the three bars never blend. Ties Naming to
+  // the outer ring (blue) and Mechanism to the inner ring (amber, oklch .62 .14
+  // 60); Application takes the app-type green.
+  Color _typeColor(CardType t) => switch (t) {
+        CardType.anchor => T.ringName,
+        CardType.mechanism => T.ringExplain,
+        CardType.application => T.appText,
+      };
+
   Widget _typeBreakdown(FsrsService f) {
     Widget row(CardType t, String label) {
       final has = concept.cards.any((c) => c.cardType == t);
@@ -80,7 +89,7 @@ class ConceptDetailScreen extends ConsumerWidget {
                   value: has ? v : 0,
                   minHeight: 8,
                   backgroundColor: T.hairline,
-                  valueColor: AlwaysStoppedAnimation(T.health(v)),
+                  valueColor: AlwaysStoppedAnimation(_typeColor(t)),
                 ),
               ),
             ),
