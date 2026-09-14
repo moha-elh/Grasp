@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/config.dart';
 import '../../design/tokens.dart';
 import '../../design/typography.dart';
+import '../auth/auth_controller.dart';
 import '../dropbox/dropbox_controller.dart';
 import 'settings_controller.dart';
 
@@ -40,7 +41,7 @@ class SettingsScreen extends ConsumerWidget {
             _mix(),
             const SizedBox(height: T.s32),
             _section('ACCOUNT'),
-            _signOut(context),
+            _signOut(context, ref),
           ],
         ),
       ),
@@ -129,17 +130,13 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ));
 
-  Widget _signOut(BuildContext context) => _panel(GestureDetector(
-        onTap: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          backgroundColor: T.ink,
-          content: Text('Sign-in isn’t set up yet. It’s the last thing to wire.',
-              style: Typo.bodySmall.copyWith(color: T.surface)),
-        )),
+  Widget _signOut(BuildContext context, WidgetRef ref) => _panel(GestureDetector(
+        onTap: () => ref.read(authControllerProvider).signOut(),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Sign out', style: Typo.body.copyWith(color: T.ink)),
-            const Icon(Icons.chevron_right, color: T.inkMeta, size: 20),
+            Text('Sign out', style: Typo.body.copyWith(color: T.slipping)),
+            const Icon(Icons.logout, color: T.slipping, size: 18),
           ],
         ),
       ));
