@@ -118,6 +118,8 @@ class GraspCard {
       };
 
   GraspCard copyWith({
+    String? front,
+    String? back,
     CardStatus? status,
     Quality? quality,
     Map<String, dynamic>? fsrs,
@@ -130,8 +132,8 @@ class GraspCard {
       GraspCard(
         id: id,
         userId: userId,
-        front: front,
-        back: back,
+        front: front ?? this.front,
+        back: back ?? this.back,
         cardType: cardType,
         source: source,
         sourcePath: sourcePath,

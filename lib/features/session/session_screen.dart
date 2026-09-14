@@ -9,6 +9,8 @@ import '../review/session_complete_view.dart';
 import '../review/session_controller.dart';
 import '../review/widgets/grading_chips.dart';
 import '../review/widgets/study_card.dart';
+import '../vetting/vetting_controller.dart';
+import '../vetting/vetting_view.dart';
 
 /// Default launch surface (screen 02/03, FR-16). Runs one review session over
 /// the queue. Tells the shell to hide the tab bar while a session is active so
@@ -34,6 +36,13 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Phase 1: swipe-vet the bounded pending batch (FR-15), then reviews.
+    final vet = ref.watch(vettingControllerProvider);
+    if (!vet.isEmpty && !vet.isComplete) {
+      _syncActive(true);
+      return const VettingView();
+    }
+
     final state = ref.watch(sessionControllerProvider);
     final ctrl = ref.read(sessionControllerProvider.notifier);
     final fsrs = ref.read(fsrsProvider);
