@@ -137,30 +137,44 @@ class RetentionScreen extends ConsumerWidget {
       );
 
   Widget _conceptRow(BuildContext context, ConceptStats c, f) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(T.rControl),
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => ConceptDetailScreen(concept: c)),
+    return Container(
+      margin: const EdgeInsets.only(bottom: T.s12),
+      decoration: BoxDecoration(
+        color: T.surface,
+        borderRadius: BorderRadius.circular(T.rControl),
+        border: Border.all(color: T.hairline),
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: T.s12),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(c.concept, style: Typo.body.copyWith(color: T.ink)),
-                  const SizedBox(height: T.s4),
-                  Text('name ${pct(c.nameRet)} · explain ${pct(c.explainRet)}',
-                      style: Typo.meta),
-                ],
-              ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(T.rControl),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          hoverColor: T.accent.withValues(alpha: 0.06),
+          splashColor: T.accent.withValues(alpha: 0.10),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => ConceptDetailScreen(concept: c)),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(T.s18),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(c.concept, style: Typo.body.copyWith(color: T.ink)),
+                      const SizedBox(height: T.s4),
+                      Text('name ${pct(c.nameRet)} · explain ${pct(c.explainRet)}',
+                          style: Typo.meta),
+                    ],
+                  ),
+                ),
+                _gapChip(c.gap),
+                const SizedBox(width: T.s8),
+                const Icon(Icons.chevron_right, color: T.inkMeta, size: 20),
+              ],
             ),
-            _gapChip(c.gap),
-            const SizedBox(width: T.s8),
-            const Icon(Icons.chevron_right, color: T.inkMeta, size: 20),
-          ],
+          ),
         ),
       ),
     );

@@ -57,7 +57,6 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
         reviewed: state.reviewed,
         flagged: state.flagged,
         nextDue: 'Next cards due tomorrow',
-        onDone: () => widget.onActiveChanged(false),
       );
     }
 
