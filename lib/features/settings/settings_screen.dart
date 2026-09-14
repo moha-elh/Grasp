@@ -78,7 +78,7 @@ class SettingsScreen extends ConsumerWidget {
           activeColor: T.accent,
           label: '$n',
           onChanged: (v) =>
-              ref.read(newCardsPerDayProvider.notifier).state = v.round(),
+              ref.read(newCardsPerDayProvider.notifier).set(v.round()),
         ),
         Text('Raising this means more new cards now, and a heavier review load '
             'in the weeks after, since every new card keeps coming back until '
