@@ -6,6 +6,7 @@ import '../../design/tokens.dart';
 import '../../design/typography.dart';
 import '../remake/remake_controller.dart';
 import '../remake/remake_pile_screen.dart';
+import '../settings/settings_screen.dart';
 import 'analytics.dart';
 import 'concept_detail_screen.dart';
 import 'widgets/dual_ring.dart';
@@ -27,7 +28,19 @@ class RetentionScreen extends ConsumerWidget {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(T.gutter, T.s32, T.gutter, T.s32),
         children: [
-          Text('Retention', style: Typo.display(34)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text('Retention', style: Typo.display(34)),
+              IconButton(
+                icon: const Icon(Icons.settings_outlined, color: T.inkMeta),
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: T.s24),
           Center(child: DualRing(name: stats.nameRet, explain: stats.explainRet)),
           const SizedBox(height: T.s24),
