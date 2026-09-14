@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/card.dart';
 import '../../design/tokens.dart';
 import '../../design/typography.dart';
+import '../../design/widgets/empty_state.dart';
 import '../../design/widgets/primary_button.dart';
 import '../../design/widgets/type_badge.dart';
 import 'remake_controller.dart';
@@ -113,17 +114,9 @@ class RemakePileScreen extends ConsumerWidget {
         ),
       );
 
-  Widget _empty() => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: T.gutter, vertical: T.s32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Nothing to remake', style: Typo.display(28)),
-            const SizedBox(height: T.s12),
-            Text('Flagged cards land here for a batch fix. The pile is clear.',
-                style: Typo.body),
-          ],
-        ),
+  Widget _empty() => const EmptyState(
+        icon: Icons.check_circle_outline,
+        title: 'Nothing to remake',
+        message: 'Flagged cards land here for a batch fix. The pile is clear.',
       );
 }

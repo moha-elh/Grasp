@@ -8,6 +8,7 @@ import '../../design/typography.dart';
 import '../review/session_complete_view.dart';
 import '../review/session_controller.dart';
 import '../review/widgets/grading_chips.dart';
+import '../../design/widgets/empty_state.dart';
 import '../review/widgets/study_card.dart';
 import '../settings/settings_button.dart';
 import '../vetting/vetting_controller.dart';
@@ -159,14 +160,15 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: T.gutter, vertical: T.s32),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Align(alignment: Alignment.centerRight, child: SettingsButton()),
-            const Spacer(),
-            Text('Nothing due', style: Typo.display(34)),
-            const SizedBox(height: T.s12),
-            Text('You’re clear for today. Come back tomorrow.', style: Typo.body),
-            const Spacer(flex: 2),
+          children: const [
+            Align(alignment: Alignment.centerRight, child: SettingsButton()),
+            Expanded(
+              child: EmptyState(
+                icon: Icons.self_improvement_outlined,
+                title: 'Nothing due',
+                message: 'You’re clear for today. Come back tomorrow.',
+              ),
+            ),
           ],
         ),
       ),

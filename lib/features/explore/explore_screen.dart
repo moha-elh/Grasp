@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../design/tokens.dart';
 import '../../design/typography.dart';
+import '../../design/widgets/empty_state.dart';
 import '../../design/widgets/tag.dart';
 import '../../design/widgets/type_badge.dart';
 import '../settings/settings_button.dart';
@@ -20,27 +21,38 @@ class ExploreScreen extends ConsumerWidget {
     final ctrl = ref.read(exploreFeedProvider.notifier);
 
     return SafeArea(
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(T.gutter, T.s32, T.gutter, T.s32),
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Explore', style: Typo.display(34)),
-              const SettingsButton(),
-            ],
-          ),
-          const SizedBox(height: T.s12),
-          Text('Candidates for exposure, not memory. Nothing enters Retention '
-              'until you trust it. The stronger path is to dive in and write a '
-              'note; the #flashcard tag flows it in on its own.',
-              style: Typo.bodySmall),
-          const SizedBox(height: T.s24),
-          if (feed.isEmpty)
-            _empty()
-          else
-            for (final item in feed) _card(context, item, ctrl),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(T.gutter, T.s32, T.gutter, 0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Explore', style: Typo.display(34)),
+                const SettingsButton(),
+              ],
+            ),
+            const SizedBox(height: T.s12),
+            Expanded(
+              child: feed.isEmpty
+                  ? _empty()
+                  : ListView(
+                      padding: const EdgeInsets.only(bottom: T.s32),
+                      children: [
+                        Text(
+                            'Candidates for exposure, not memory. Nothing enters '
+                            'Retention until you trust it. The stronger path is to '
+                            'dive in and write a note; the #flashcard tag flows it '
+                            'in on its own.',
+                            style: Typo.bodySmall),
+                        const SizedBox(height: T.s24),
+                        for (final item in feed) _card(context, item, ctrl),
+                      ],
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -125,16 +137,9 @@ class ExploreScreen extends ConsumerWidget {
       ? const Tag('Web', T.accent)
       : const Tag('Adjacent', T.softening);
 
-  Widget _empty() => Padding(
-        padding: const EdgeInsets.only(top: T.s32),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Nothing to explore right now', style: Typo.display(24)),
-            const SizedBox(height: T.s12),
-            Text('New adjacent concepts and web-sourced cards will show up here.',
-                style: Typo.body),
-          ],
-        ),
+  Widget _empty() => const EmptyState(
+        icon: Icons.travel_explore_outlined,
+        title: 'Nothing to explore yet',
+        message: 'New adjacent concepts and web-sourced cards will show up here.',
       );
 }
