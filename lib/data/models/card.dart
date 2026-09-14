@@ -66,6 +66,13 @@ class GraspCard {
   /// Rehydrate the live FSRS card from stored jsonb.
   fsrs_pkg.Card get fsrsCard => fsrs_pkg.Card.fromMap(fsrs);
 
+  /// Concept = the origin note's name (analytics rolls up by note, §5.8).
+  /// Derived from the note filename; empty for source-less Explore cards.
+  String get conceptName {
+    final base = (sourcePath ?? '').split('/').last;
+    return base.replaceAll(RegExp(r'\.md$'), '');
+  }
+
   factory GraspCard.fromJson(Map<String, dynamic> j) => GraspCard(
         id: j['id'] as String,
         userId: j['user_id'] as String,

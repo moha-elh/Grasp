@@ -35,4 +35,14 @@ void main() {
     final r = s.review(_card(s), fsrs.Rating.again);
     expect(r.card.lapses, 1);
   });
+
+  test('interval previews are positive and ordered Again < Good < Easy', () {
+    final p = s.previewIntervals(_card(s));
+    expect(p.length, 4);
+    for (final d in p.values) {
+      expect(d.inSeconds, greaterThan(0));
+    }
+    expect(p[fsrs.Rating.again]!, lessThan(p[fsrs.Rating.good]!));
+    expect(p[fsrs.Rating.good]!, lessThanOrEqualTo(p[fsrs.Rating.easy]!));
+  });
 }

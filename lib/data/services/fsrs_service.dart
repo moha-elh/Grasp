@@ -51,6 +51,20 @@ class FsrsService {
     );
   }
 
+  /// The interval each grade would schedule, WITHOUT persisting — shown on the
+  /// grading chips before the user picks one (design §07 "grading intervals").
+  Map<fsrs.Rating, Duration> previewIntervals(GraspCard card, {DateTime? at}) {
+    final now = (at ?? DateTime.now()).toUtc();
+    return {
+      for (final r in fsrs.Rating.values)
+        r: _scheduler
+            .reviewCard(card.fsrsCard, r, reviewDateTime: now)
+            .card
+            .due
+            .difference(now),
+    };
+  }
+
   /// Current recall probability (FR-28 recall strength). 0..1.
   double retrievability(GraspCard card, {DateTime? at}) =>
       _scheduler.getCardRetrievability(card.fsrsCard, currentDateTime: (at ?? DateTime.now()).toUtc());
