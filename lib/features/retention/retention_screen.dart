@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers.dart';
 import '../../design/tokens.dart';
 import '../../design/typography.dart';
+import '../remake/remake_controller.dart';
+import '../remake/remake_pile_screen.dart';
 import 'analytics.dart';
 import 'concept_detail_screen.dart';
 import 'widgets/dual_ring.dart';
@@ -32,11 +34,44 @@ class RetentionScreen extends ConsumerWidget {
           _legend(stats),
           const SizedBox(height: T.s32),
           _curvePlaceholder(),
+          const SizedBox(height: T.s18),
+          _remakeEntry(context, ref),
           const SizedBox(height: T.s32),
           Text('BY CONCEPT — WIDEST GAP FIRST', style: Typo.mono(size: 10)),
           const SizedBox(height: T.s12),
           for (final c in stats.concepts) _conceptRow(context, c, f),
         ],
+      ),
+    );
+  }
+
+  /// Screen 10 is reachable from Retention only (FR-26), never mid-session.
+  Widget _remakeEntry(BuildContext context, WidgetRef ref) {
+    final count = ref.watch(remakePileProvider).length;
+    return InkWell(
+      borderRadius: BorderRadius.circular(T.rControl),
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const RemakePileScreen()),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(T.s18),
+        decoration: BoxDecoration(
+          color: T.surface,
+          borderRadius: BorderRadius.circular(T.rControl),
+          border: Border.all(color: T.hairline),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text('Remake pile',
+                  style: Typo.body.copyWith(color: T.ink)),
+            ),
+            Text(count == 0 ? 'clear' : '$count flagged',
+                style: Typo.mono(size: 11, color: count == 0 ? T.inkMeta : T.remakeText)),
+            const SizedBox(width: T.s8),
+            const Icon(Icons.chevron_right, color: T.inkMeta, size: 20),
+          ],
+        ),
       ),
     );
   }
