@@ -39,7 +39,8 @@ dependencies:
   fsrs: ^2.0.1
   http: ^1.6.0
   flutter_secure_storage: ^11.1.1
-  flutter_web_auth_2: ^5.1.0
+  app_links: ^7.0.0
+  url_launcher: ^6.3.2
   flutter_dotenv: ^6.0.1
   crypto: ^3.0.7
   google_fonts: ^8.2.1

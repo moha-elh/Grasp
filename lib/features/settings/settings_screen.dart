@@ -163,7 +163,16 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   Widget _signOut(BuildContext context, WidgetRef ref) => _panel(GestureDetector(
-        onTap: () => ref.read(authControllerProvider).signOut(),
+        // Settings is pushed on top of the gate, so after clearing the session
+        // we must pop back to root for the sign-in screen to surface.
+        onTap: () async {
+          try {
+            await ref.read(authControllerProvider).signOut();
+          } catch (_) {}
+          if (context.mounted) {
+            Navigator.of(context).popUntil((r) => r.isFirst);
+          }
+        },
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [

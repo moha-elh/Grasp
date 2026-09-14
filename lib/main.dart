@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app.dart';
 import 'core/config.dart';
+import 'core/net.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,6 +13,7 @@ Future<void> main() async {
   await Supabase.initialize(
     url: Config.supabaseUrl,
     publishableKey: Config.supabaseKey,
+    httpClient: resilientHttpClient(),
   );
   runApp(const ProviderScope(child: GraspApp()));
 }

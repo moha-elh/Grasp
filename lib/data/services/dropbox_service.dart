@@ -1,10 +1,12 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:app_links/app_links.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/config.dart';
 
@@ -49,12 +51,11 @@ class DropboxService {
       'redirect_uri': Config.dropboxRedirectUri,
     });
 
-    final result = await FlutterWebAuth2.authenticate(
-      url: authUrl.toString(),
-      callbackUrlScheme: Config.dropboxCallbackScheme,
-    );
-    final code = Uri.parse(result).queryParameters['code'];
-    if (code == null) throw StateError('Dropbox auth returned no code');
+    // Open the consent page in the real browser and catch the grasp://auth
+    // redirect ourselves via a deep link. This is deterministic across devices,
+    // unlike flutter_web_auth_2's Auth Tab, which never handed the redirect back
+    // here (the app authorized on Dropbox but the app was never notified).
+    final code = await _authorize(authUrl);
 
     final resp = await _http.post(
       Uri.https('api.dropboxapi.com', '/oauth2/token'),
@@ -70,6 +71,35 @@ class DropboxService {
     final json = jsonDecode(resp.body) as Map<String, dynamic>;
     await _storage.write(key: _kRefreshToken, value: json['refresh_token'] as String);
     _setAccess(json);
+  }
+
+  /// Opens the Dropbox consent page in the system browser and waits for the
+  /// `grasp://auth?code=...` redirect to come back as a deep link. Returns the
+  /// authorization code.
+  Future<String> _authorize(Uri authUrl) async {
+    final appLinks = AppLinks();
+    final done = Completer<String>();
+
+    final sub = appLinks.uriLinkStream.listen((uri) {
+      if (done.isCompleted) return;
+      if (uri.scheme != Config.dropboxCallbackScheme) return;
+      final code = uri.queryParameters['code'];
+      if (code != null) {
+        done.complete(code);
+      } else {
+        done.completeError(
+            StateError('Dropbox redirect had no code: ${uri.query}'));
+      }
+    });
+
+    try {
+      final ok = await launchUrl(authUrl, mode: LaunchMode.externalApplication);
+      if (!ok) throw StateError('Could not open the browser for Dropbox');
+      return await done.future.timeout(const Duration(minutes: 5),
+          onTimeout: () => throw StateError('Dropbox authorization timed out'));
+    } finally {
+      await sub.cancel();
+    }
   }
 
   Future<void> disconnect() => _storage.delete(key: _kRefreshToken);

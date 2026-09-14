@@ -22,11 +22,15 @@ class AuthController {
   final SupabaseClient _client;
   AuthController(this._client);
 
-  Future<void> signIn(String email, String password) =>
-      _client.auth.signInWithPassword(email: email.trim(), password: password);
+  // Timeout so a stalled request surfaces an error instead of spinning forever.
+  static const _timeout = Duration(seconds: 20);
+
+  Future<void> signIn(String email, String password) => _client.auth
+      .signInWithPassword(email: email.trim(), password: password)
+      .timeout(_timeout);
 
   Future<AuthResponse> signUp(String email, String password) =>
-      _client.auth.signUp(email: email.trim(), password: password);
+      _client.auth.signUp(email: email.trim(), password: password).timeout(_timeout);
 
-  Future<void> signOut() => _client.auth.signOut();
+  Future<void> signOut() => _client.auth.signOut().timeout(_timeout);
 }

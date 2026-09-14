@@ -33,13 +33,13 @@ class GradingChips extends StatelessWidget {
         children: [
           Row(
             children: [
-              _chip(fsrs.Rating.again, 'Again', filled: true),
+              _chip(fsrs.Rating.again, 'Again', T.again, filled: true),
               const SizedBox(width: T.s8),
-              _chip(fsrs.Rating.hard, 'Hard'),
+              _chip(fsrs.Rating.hard, 'Hard', T.softening),
               const SizedBox(width: T.s8),
-              _chip(fsrs.Rating.good, 'Good'),
+              _chip(fsrs.Rating.good, 'Good', T.accent),
               const SizedBox(width: T.s8),
-              _chip(fsrs.Rating.easy, 'Easy'),
+              _chip(fsrs.Rating.easy, 'Easy', T.appText),
             ],
           ),
           const SizedBox(height: T.s12),
@@ -60,18 +60,21 @@ class GradingChips extends StatelessWidget {
     );
   }
 
-  Widget _chip(fsrs.Rating rating, String label, {bool filled = false}) {
+  // Each grade carries its own semantic color: Again is a solid danger chip,
+  // the rest are soft tinted pills (amber / blue / green) so the row reads as a
+  // designed set rather than one loud button beside three plain ones.
+  Widget _chip(fsrs.Rating rating, String label, Color color,
+      {bool filled = false}) {
     final interval = intervals[rating];
-    final fg = filled ? T.surface : T.ink;
+    final fg = filled ? T.surface : color;
     return Expanded(
       child: GestureDetector(
         onTap: () => onGrade(rating),
         child: Container(
           height: T.hitChip,
           decoration: BoxDecoration(
-            color: filled ? T.again : T.surface,
+            color: filled ? color : color.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(T.rControl),
-            border: filled ? null : Border.all(color: const Color(0x24141A22)),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

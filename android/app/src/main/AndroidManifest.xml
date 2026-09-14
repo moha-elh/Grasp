@@ -1,4 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Required for Supabase auth, Dropbox OAuth token exchange, LLM calls, and
+         google_fonts. The debug/profile manifests declare this too, but release
+         builds use only this one, so it must live here or all networking fails. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="grasp"
         android:name="${applicationName}"
@@ -20,20 +24,24 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
+            <!-- Impeller/Vulkan freezes the SurfaceView on low-end Mali GPUs
+                 (e.g. Galaxy A07): "BLASTBufferQueue: Can't acquire next buffer".
+                 Fall back to the Skia backend so the UI keeps compositing. -->
+            <meta-data
+              android:name="io.flutter.embedding.android.EnableImpeller"
+              android:value="false"
+              />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-        </activity>
-        <!-- Dropbox OAuth callback (flutter_web_auth_2), scheme "grasp" -->
-        <activity
-            android:name="com.linusu.flutter_web_auth_2.CallbackActivity"
-            android:exported="true">
-            <intent-filter android:label="flutter_web_auth_2">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="grasp" />
+            <!-- Dropbox OAuth redirect (grasp://auth). Caught here via app_links
+                 and completed by DropboxService, instead of a browser tab. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="grasp" android:host="auth"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

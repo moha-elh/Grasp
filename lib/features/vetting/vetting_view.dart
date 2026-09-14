@@ -100,7 +100,13 @@ class VettingView extends ConsumerWidget {
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(T.rControl)),
           ),
-          child: Text(label, style: Typo.label.copyWith(color: color, fontSize: 15)),
+          // scaleDown keeps "Discard" on one line in the narrow third-width slot.
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(label,
+                maxLines: 1,
+                style: Typo.label.copyWith(color: color, fontSize: 15)),
+          ),
         ),
       );
 

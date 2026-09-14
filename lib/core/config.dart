@@ -11,7 +11,7 @@ class Config {
   static String get llmKey => _req('GROQ_API_KEY');
   static const llmBaseUrl = 'api.groq.com';
   static const llmPath = '/openai/v1/chat/completions';
-  static const llmModel = 'llama-3.3-70b-versatile';
+  static const llmModel = 'openai/gpt-oss-120b';
   // Mistral swap: MISTRAL_API_KEY, 'api.mistral.ai', '/v1/chat/completions',
   // model e.g. 'mistral-large-latest'.
 
