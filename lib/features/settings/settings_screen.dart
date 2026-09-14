@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/config.dart';
 import '../../design/tokens.dart';
 import '../../design/typography.dart';
+import '../../design/widgets/primary_button.dart';
 import '../auth/auth_controller.dart';
 import '../dropbox/dropbox_controller.dart';
+import '../generation/generation_controller.dart';
 import 'settings_controller.dart';
 
 /// Screen 12 · Settings (FR-8, FR-17). The new-card throttle (with the load
@@ -39,6 +41,9 @@ class SettingsScreen extends ConsumerWidget {
             const SizedBox(height: T.s32),
             _section('GENERATION MIX'),
             _mix(),
+            const SizedBox(height: T.s32),
+            _section('CONTENT'),
+            _generate(ref),
             const SizedBox(height: T.s32),
             _section('ACCOUNT'),
             _signOut(context, ref),
@@ -129,6 +134,33 @@ class SettingsScreen extends ConsumerWidget {
           _MixRow('Application', 'when to use it', 0.25),
         ],
       ));
+
+  /// Manual trigger for a background generation pass (FR-7). Normally runs on
+  /// app entry; this is here to kick it and watch the result on device.
+  Widget _generate(WidgetRef ref) {
+    final gen = ref.watch(generationControllerProvider);
+    final running = gen.phase == GenPhase.running;
+    final (label, color) = switch (gen.phase) {
+      GenPhase.running => ('Generating cards from your vault', T.inkMeta),
+      GenPhase.done => ('Added ${gen.added} card${gen.added == 1 ? '' : 's'} last run', T.appText),
+      GenPhase.error => ('Generation failed: ${gen.message ?? ''}', T.slipping),
+      GenPhase.idle => ('Reads tagged notes and builds pending cards ahead of your sessions.', T.inkMeta),
+    };
+    return _panel(Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: Typo.bodySmall.copyWith(color: color)),
+        const SizedBox(height: T.s12),
+        PrimaryButton(
+          running ? 'Generating' : 'Generate cards now',
+          busy: running,
+          onPressed: running
+              ? null
+              : () => ref.read(generationControllerProvider.notifier).runPass(),
+        ),
+      ],
+    ));
+  }
 
   Widget _signOut(BuildContext context, WidgetRef ref) => _panel(GestureDetector(
         onTap: () => ref.read(authControllerProvider).signOut(),

@@ -1,24 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../design/tokens.dart';
 import '../../design/typography.dart';
 import '../explore/explore_screen.dart';
+import '../generation/generation_controller.dart';
 import '../retention/retention_screen.dart';
 import '../session/session_screen.dart';
 
 /// Root navigation: Session · Retention · Explore (§14, FR-18/19).
 /// The tab bar is hidden during an active session so the loop isn't
 /// interrupted - Session drives that via [onSessionActiveChanged].
-class AppShell extends StatefulWidget {
+class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key});
 
   @override
-  State<AppShell> createState() => _AppShellState();
+  ConsumerState<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<AppShell> {
+class _AppShellState extends ConsumerState<AppShell> {
   int _index = 0;
   bool _sessionActive = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Kick off one background generation pass on entry (FR-7). No-ops when
+    // signed out or when the pending queue is already full.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(generationControllerProvider.notifier).runPass();
+    });
+  }
 
   static const _tabs = [
     _Tab('Session', Icons.school_outlined, Icons.school),
