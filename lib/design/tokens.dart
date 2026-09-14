@@ -31,7 +31,7 @@ class T {
 
   // === Dual ring (screen 08) — one distinct color per arc ===
   static const ringName = accent; // outer arc: anchor / "can name" (blue)
-  static const ringExplain = Color(0xFF7A5AF8); // inner arc: mechanism (violet)
+  static const ringExplain = Color(0xFFC26E12); // inner arc: mechanism — oklch(.62 .14 60) amber
 
   // === Card-type badge colors (outline only) ===
   static const mechText = Color(0xFF005998);
