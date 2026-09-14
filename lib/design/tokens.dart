@@ -29,6 +29,10 @@ class T {
   static const slipping = Color(0xFFC74B47); // < 50% and Again  oklch(.58 .16 25)
   static const again = Color(0xFFD55753); // Again grading chip fill
 
+  // === Dual ring (screen 08) — one distinct color per arc ===
+  static const ringName = accent; // outer arc: anchor / "can name" (blue)
+  static const ringExplain = Color(0xFF7A5AF8); // inner arc: mechanism (violet)
+
   // === Card-type badge colors (outline only) ===
   static const mechText = Color(0xFF005998);
   static const mechBorder = Color(0x733786C3); // .45 alpha
