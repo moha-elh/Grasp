@@ -69,7 +69,17 @@ class DropboxService {
     );
     _checkOk(resp, 'token exchange');
     final json = jsonDecode(resp.body) as Map<String, dynamic>;
-    await _storage.write(key: _kRefreshToken, value: json['refresh_token'] as String);
+    // Dropbox only returns a refresh_token on the FIRST offline authorization;
+    // a re-auth can omit it. Never write null (that DELETES the key and
+    // silently disconnects): store a fresh token, keep an existing one, or fail
+    // clearly BEFORE anything treats us as connected.
+    final refresh = json['refresh_token'] as String?;
+    if (refresh != null) {
+      await _storage.write(key: _kRefreshToken, value: refresh);
+    } else if (await _storage.read(key: _kRefreshToken) == null) {
+      throw StateError('Dropbox did not return a refresh token; '
+          're-authorize with offline access enabled.');
+    }
     _setAccess(json);
   }
 

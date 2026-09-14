@@ -62,8 +62,21 @@ class DropboxController extends StateNotifier<DropboxStatus> {
       final notes = await _svc.eligibleNotes();
       state = DropboxStatus(DropboxPhase.connected, noteCount: notes.length);
     } catch (e) {
-      state = DropboxStatus(DropboxPhase.error,
-          message: e.toString(), scopeError: _looksLikeScopeError(e));
+      // A transient failure (flaky network, generation contention) must NOT
+      // make the app forget it is connected and bounce back to the connect
+      // screen. If the refresh token is still stored and this is not a genuine
+      // scope/permission problem, stay connected and just surface the error.
+      final scope = _looksLikeScopeError(e);
+      var stillConnected = false;
+      if (!scope) {
+        try {
+          stillConnected = await _svc.isConnected;
+        } catch (_) {}
+      }
+      state = stillConnected
+          ? DropboxStatus(DropboxPhase.connected, message: e.toString())
+          : DropboxStatus(DropboxPhase.error,
+              message: e.toString(), scopeError: scope);
     }
   }
 
