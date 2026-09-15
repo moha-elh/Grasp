@@ -150,3 +150,36 @@ Go through these in order and confirm each works:
   actually contains `#flashcard`. The error text in Settings names the cause.
 - **Phone not detected** → re-accept the USB-debugging prompt; try a different
   cable/port; `adb kill-server` then replug.
+
+## Release signing (installable APK)
+
+Debug builds are fine for testing over USB. To build a real, installable
+release APK you need your own keystore. Do this once:
+
+1. Generate the keystore (keep the passwords somewhere safe; losing them means
+   you can never update the app under the same identity):
+
+   ```powershell
+   keytool -genkey -v -keystore $env:USERPROFILE\grasp-upload.jks `
+     -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+   ```
+
+2. Copy `android/key.properties.example` to `android/key.properties` (already
+   gitignored) and fill it in:
+
+   ```properties
+   storePassword=<the store password you just set>
+   keyPassword=<the key password you just set>
+   keyAlias=upload
+   storeFile=C:\Users\<you>\grasp-upload.jks
+   ```
+
+3. Build:
+
+   ```powershell
+   flutter build apk --release
+   ```
+
+   The signed APK lands at `build/app/outputs/flutter-apk/app-release.apk`.
+   Without `key.properties` the release build falls back to debug keys, so
+   `flutter run --release` keeps working with no setup.

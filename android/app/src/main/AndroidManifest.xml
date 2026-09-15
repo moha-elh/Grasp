@@ -4,7 +4,7 @@
          builds use only this one, so it must live here or all networking fails. -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="grasp"
+        android:label="Grasp"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

@@ -1,0 +1,8 @@
+# Copy to android/key.properties (gitignored) and fill in after you create the
+# keystore. See the release-signing steps in docs/testing-on-mobile.md.
+#
+# storeFile can be an absolute path, or relative to android/app.
+storePassword=
+keyPassword=
+keyAlias=upload
+storeFile=
