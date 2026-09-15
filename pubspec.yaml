@@ -56,9 +56,10 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: false
-  image_path: "Mascot.png"
+  # Square, padded sources (built from Mascot.png) so the icon is not stretched.
+  image_path: "icon_legacy.png"
   adaptive_icon_background: "#0077BD"
-  adaptive_icon_foreground: "Mascot.png"
+  adaptive_icon_foreground: "icon_foreground.png"
   min_sdk_android: 21
 
   # The "flutter_lints" package below contains a set of recommended lints to
