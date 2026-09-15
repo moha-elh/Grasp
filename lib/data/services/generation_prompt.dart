@@ -36,6 +36,35 @@ OUTPUT: strict JSON only, no prose, no markdown fences:
 {"cards": [{"front": "...", "back": "...", "type": "anchor|mechanism|application"}]}
 ''';
 
+/// Explore card author (FR-19): ONE card, either an adjacent concept derived
+/// from what the user studies, or a card built strictly from web source text.
+const String exploreSystemPrompt = '''
+You author ONE spaced-repetition flashcard as strict JSON, no prose, no fences:
+{"front": "...", "back": "...", "type": "anchor|mechanism|application"}
+
+front is a single clear question; back is a concise answer answerable in a
+breath. One idea only. Favor mechanism/application (how/why, when to use) over
+naming. If given source material, use ONLY it and invent nothing beyond it.
+''';
+
+/// The Explore user turn. With [webContent], author strictly from the source;
+/// otherwise propose an adjacent concept to [seedConcept].
+String explorePrompt({
+  required String seedConcept,
+  String? webTitle,
+  String? webContent,
+}) {
+  if (webContent == null) {
+    return 'A learner already studies "$seedConcept". Propose ONE ADJACENT '
+        'concept they most likely have not covered yet (a neighbour, NOT '
+        '"$seedConcept" itself), and author a single flashcard teaching its '
+        'core idea.';
+  }
+  return 'Using ONLY the source material below, author ONE flashcard capturing '
+      'its single most useful idea for someone studying "$seedConcept".\n\n'
+      'SOURCE (title: "$webTitle"):\n$webContent';
+}
+
 /// The per-note user turn. `targetMix` nudges the type distribution (FR-9).
 String generationUserPrompt({
   required String notePath,

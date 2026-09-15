@@ -15,6 +15,13 @@ class Config {
   // Mistral swap: MISTRAL_API_KEY, 'api.mistral.ai', '/v1/chat/completions',
   // model e.g. 'mistral-large-latest'.
 
+  // --- Web search for Explore web cards (FR-19/FR-20). Tavily default: real
+  // cited URLs, free tier. Explore adjacency needs no key; web is best-effort
+  // and silently skips when this is absent. ---
+  static String get searchApiKey => _req('SEARCH_API_KEY');
+  static const searchBaseUrl = 'api.tavily.com';
+  static const searchPath = '/search';
+
   // --- Dropbox (FR-2, FR-3) ---
   /// Vault folder scoped for reading. Only notes here are considered.
   static const notesFolder = '/Applications/remotely-save/Knowledge/6 - Main Notes';

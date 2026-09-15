@@ -7,7 +7,7 @@ import '../../design/widgets/empty_state.dart';
 import '../../design/widgets/tag.dart';
 import '../../design/widgets/type_badge.dart';
 import '../settings/settings_button.dart';
-import 'mock_explore.dart';
+import 'explore_feed.dart';
 
 /// Explore tab (screen 11, FR-19/FR-20). Adjacent concepts + cited web cards,
 /// each showing its source inline. A single verify promotes into Retention (the
@@ -19,6 +19,7 @@ class ExploreScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final feed = ref.watch(exploreFeedProvider);
     final ctrl = ref.read(exploreFeedProvider.notifier);
+    final items = feed.items;
 
     return SafeArea(
       child: Padding(
@@ -35,21 +36,26 @@ class ExploreScreen extends ConsumerWidget {
             ),
             const SizedBox(height: T.s12),
             Expanded(
-              child: feed.isEmpty
-                  ? _empty()
-                  : ListView(
-                      padding: const EdgeInsets.only(bottom: T.s32),
-                      children: [
-                        Text(
-                            'Candidates for exposure, not memory. Nothing enters '
-                            'Retention until you trust it. The stronger path is to '
-                            'dive in and write a note; the #flashcard tag flows it '
-                            'in on its own.',
-                            style: Typo.bodySmall),
-                        const SizedBox(height: T.s24),
-                        for (final item in feed) _card(context, item, ctrl),
-                      ],
-                    ),
+              child: feed.loading
+                  ? _loading()
+                  : feed.error != null
+                      ? _errorState(feed.error!)
+                      : items.isEmpty
+                          ? _empty()
+                          : ListView(
+                              padding: const EdgeInsets.only(bottom: T.s32),
+                              children: [
+                                Text(
+                                    'Candidates for exposure, not memory. Nothing '
+                                    'enters Retention until you trust it. The '
+                                    'stronger path is to dive in and write a note; '
+                                    'the #flashcard tag flows it in on its own.',
+                                    style: Typo.bodySmall),
+                                const SizedBox(height: T.s24),
+                                for (final item in items)
+                                  _card(context, item, ctrl),
+                              ],
+                            ),
             ),
           ],
         ),
@@ -140,6 +146,17 @@ class ExploreScreen extends ConsumerWidget {
   Widget _empty() => const EmptyState(
         icon: Icons.travel_explore_outlined,
         title: 'Nothing to explore yet',
-        message: 'New adjacent concepts and web-sourced cards will show up here.',
+        message: 'Approve a few cards first. Explore grows adjacent concepts '
+            'and web-sourced cards from what you already study.',
+      );
+
+  Widget _loading() => const Center(
+        child: CircularProgressIndicator(color: T.accent),
+      );
+
+  Widget _errorState(String message) => EmptyState(
+        icon: Icons.cloud_off_outlined,
+        title: 'Could not load Explore',
+        message: message,
       );
 }
