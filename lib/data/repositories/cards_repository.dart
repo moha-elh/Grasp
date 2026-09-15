@@ -41,6 +41,31 @@ class CardsRepository {
     ]);
   }
 
+  /// Insert one Explore-sourced card straight as `approved` (FR-20): verifying
+  /// IS the trust gate, so it skips `pending`. Enters as a NEW card (reps 0).
+  Future<void> insertExplore({
+    required String userId,
+    required String front,
+    required String back,
+    required CardType type,
+    String? referenceUrl,
+    required FsrsService fsrs,
+  }) async {
+    final now = DateTime.now().toUtc();
+    await _t.insert({
+      'user_id': userId,
+      'front': front,
+      'back': back,
+      'card_type': type.name,
+      'source': CardSource.explore.name,
+      'reference_url': referenceUrl,
+      'status': 'approved',
+      'fsrs': fsrs.newCard(),
+      'created_at': now.toIso8601String(),
+      'updated_at': now.toIso8601String(),
+    });
+  }
+
   /// Pending cards awaiting vetting, drawn across all notes (FR-14).
   Future<List<GraspCard>> pendingToVet({int limit = 20}) async {
     final rows = await _t

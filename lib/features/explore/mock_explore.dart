@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/providers.dart';
 import '../../data/models/card.dart';
 
 /// Where an Explore candidate comes from (FR-19). Adjacent = a semantic
@@ -33,17 +34,40 @@ class ExploreItem {
 /// (FR-20 quick path).
 final exploreFeedProvider =
     StateNotifierProvider.autoDispose<ExploreController, List<ExploreItem>>(
-  (ref) => ExploreController(_seed),
+  // The Explore tab is built eagerly in the shell's IndexedStack, so deps are
+  // read lazily at verify-time (via ref) - reading Supabase-backed providers
+  // here would crash tests/boot before the client is initialized.
+  (ref) => ExploreController(_seed, ref: ref),
 );
 
 class ExploreController extends StateNotifier<List<ExploreItem>> {
-  ExploreController(super.feed);
+  final Ref? _ref;
+
+  ExploreController(super.feed, {Ref? ref}) : _ref = ref;
 
   /// The trust gate's quick path (FR-20): a single verify promotes the card
-  /// into the Retention deck. Removes it from the feed.
-  void verify(String id) {
-    // TODO(explore): insert as an approved Retention card (source = explore,
-    // reference_url kept) via CardsRepository.
+  /// into the Retention deck as an `approved`, Explore-sourced NEW card, then
+  /// removes it from the feed. Repo-less (seeded/test) mode just removes it.
+  Future<void> verify(String id) async {
+    final ref = _ref;
+    final userId = ref?.read(userIdProvider);
+    if (ref != null && userId != null) {
+      final item = state.firstWhere((e) => e.id == id);
+      try {
+        await ref.read(cardsRepoProvider).insertExplore(
+              userId: userId,
+              front: item.front,
+              back: item.back,
+              type: item.type,
+              referenceUrl: item.url,
+              fsrs: ref.read(fsrsProvider),
+            );
+      } catch (_) {
+        // Keep the item in the feed if the write fails; don't crash the UI.
+        return;
+      }
+    }
+    if (!mounted) return;
     state = [
       for (final e in state)
         if (e.id != id) e
