@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#0077BD</color>
+    <!-- T.ground: the Android 12+ splash background, so the OS splash is not the
+         blue launcher icon. -->
+    <color name="splash_background">#ECEEF1</color>
 </resources>

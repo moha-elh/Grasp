@@ -43,17 +43,21 @@ class GradingChips extends StatelessWidget {
             ],
           ),
           const SizedBox(height: T.s12),
-          GestureDetector(
-            onTap: onFlag,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('Badly made card? ', style: Typo.meta),
-                Text('Flag it',
-                    style: Typo.meta.copyWith(
-                        color: T.ink, decoration: TextDecoration.underline)),
-              ],
+          Divider(height: 1, color: T.hairline),
+          const SizedBox(height: T.s12),
+          // A calm, clearly separate utility, never a fifth grade (FR-25).
+          OutlinedButton.icon(
+            onPressed: onFlag,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: T.inkMeta,
+              side: BorderSide(color: T.hairline),
+              shape: const StadiumBorder(),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: T.s18, vertical: T.s8),
             ),
+            icon: const Icon(Icons.outlined_flag, size: 16, color: T.inkMeta),
+            label: Text('Flag as badly made',
+                style: Typo.meta.copyWith(color: T.inkMeta)),
           ),
         ],
       ),

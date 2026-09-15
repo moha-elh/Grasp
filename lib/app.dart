@@ -61,6 +61,16 @@ class _Splash extends StatelessWidget {
   const _Splash();
   @override
   Widget build(BuildContext context) => Scaffold(
-        body: Center(child: Text('GRASP', style: Typo.mono(size: 13, color: T.accent))),
+        backgroundColor: T.ground,
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Transparent-background mascot, the brand mark, not boxed.
+              Image.asset('Mascot.png', width: 220, height: 220),
+              Text('Grasp', style: Typo.display(34)),
+            ],
+          ),
+        ),
       );
 }

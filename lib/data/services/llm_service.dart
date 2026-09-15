@@ -11,7 +11,8 @@ class GeneratedCard {
   final String front;
   final String back;
   final CardType type;
-  const GeneratedCard(this.front, this.back, this.type);
+  final String? sourceQuote; // verbatim span from the note, for highlighting
+  const GeneratedCard(this.front, this.back, this.type, {this.sourceQuote});
 }
 
 /// Authors flashcards from note text via an OpenAI-compatible LLM API
@@ -103,6 +104,7 @@ class LlmService {
         c['back'] as String,
         CardType.values.firstWhere((e) => e.name == c['type'],
             orElse: () => CardType.mechanism),
+        sourceQuote: c['quote'] as String?,
       );
     }).toList();
   }

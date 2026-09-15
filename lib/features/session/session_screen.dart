@@ -9,6 +9,7 @@ import '../review/session_complete_view.dart';
 import '../review/session_controller.dart';
 import '../review/widgets/grading_chips.dart';
 import '../../design/widgets/empty_state.dart';
+import '../review/widgets/source_note_sheet.dart';
 import '../review/widgets/study_card.dart';
 import '../settings/settings_button.dart';
 import '../vetting/vetting_controller.dart';
@@ -165,25 +166,13 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
   void _showSource(GraspCard card) {
     showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
       backgroundColor: T.surface,
       showDragHandle: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(T.rCard)),
       ),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.fromLTRB(T.gutter, 0, T.gutter, T.s32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('SOURCE NOTE', style: Typo.mono(size: 10, color: T.accent)),
-            const SizedBox(height: T.s12),
-            Text(card.sourceExcerpt ?? '(no excerpt stored)', style: Typo.body),
-            const SizedBox(height: T.s18),
-            Text(card.sourcePath ?? '', style: Typo.meta),
-          ],
-        ),
-      ),
+      builder: (_) => SourceNoteSheet(card),
     );
   }
 

@@ -70,25 +70,34 @@ class VettingController extends StateNotifier<VettingState> {
   }
 
   /// Swipe right (FR-14): accept into the Retention deck (status → approved).
-  void accept() {
+  Future<void> accept() async {
     if (state.isComplete) return;
-    _repo?.setStatus(state.current!.id, CardStatus.approved);
+    final id = state.current!.id;
     state = state.copyWith(index: state.index + 1, accepted: state.accepted + 1);
+    // Supabase's PostgrestBuilder is lazy — it only issues the request when
+    // awaited. Advancing first keeps the swipe instant; the await guarantees
+    // the status write actually reaches the DB (a failed write leaves the card
+    // pending, so it resurfaces next pass rather than being silently lost).
+    await _repo?.setStatus(id, CardStatus.approved);
   }
 
   /// Swipe left (FR-14): discard.
-  void discard() {
+  Future<void> discard() async {
     if (state.isComplete) return;
-    _repo?.setStatus(state.current!.id, CardStatus.discarded);
+    final id = state.current!.id;
     state = state.copyWith(index: state.index + 1, discarded: state.discarded + 1);
+    await _repo?.setStatus(id, CardStatus.discarded);
   }
 
   /// Swipe up (FR-14): accept, but with edited wording first.
-  void acceptEdited(String front, String back) {
+  Future<void> acceptEdited(String front, String back) async {
     if (state.isComplete) return;
     final card = state.current!;
-    _repo?.updateWording(card.id, front: front, back: back);
     state.queue[state.index] = card.copyWith(front: front, back: back);
-    accept();
+    // Advance first (accept() mutates state synchronously before its await),
+    // then persist. Awaiting the write before accept() would defer the state
+    // change to a later microtask.
+    await accept();
+    await _repo?.updateWording(card.id, front: front, back: back);
   }
 }

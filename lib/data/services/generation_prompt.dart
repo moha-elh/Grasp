@@ -32,8 +32,13 @@ HARD RULES:
 Prefer mechanism/application cards; use anchor cards only for the pegs a
 mechanism genuinely needs.
 
+Each card also carries a "quote": a short span (one sentence or clause) copied
+VERBATIM from the note that this card is based on, so the user can find it in
+the note later. Copy it exactly; do not paraphrase. Never quote frontmatter,
+tags, or link references.
+
 OUTPUT: strict JSON only, no prose, no markdown fences:
-{"cards": [{"front": "...", "back": "...", "type": "anchor|mechanism|application"}]}
+{"cards": [{"front": "...", "back": "...", "type": "anchor|mechanism|application", "quote": "..."}]}
 ''';
 
 /// Explore card author (FR-19): ONE card, either an adjacent concept derived

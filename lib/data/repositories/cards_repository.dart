@@ -32,7 +32,9 @@ class CardsRepository {
           'card_type': c.type.name,
           'source': CardSource.notes.name,
           'source_path': sourcePath,
-          'source_excerpt': sourceExcerpt,
+          // Per-card verbatim span when the model gave one, so the source note
+          // view can highlight it; else the shared note opening.
+          'source_excerpt': c.sourceQuote ?? sourceExcerpt,
           'status': 'pending',
           'fsrs': fsrs.newCard(),
           'created_at': now.toIso8601String(),
