@@ -123,8 +123,15 @@ class VettingView extends ConsumerWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(T.rCard)),
       ),
       builder: (sheetCtx) => Padding(
+        // viewInsets = keyboard; padding.bottom = system nav bar (0 when the
+        // keyboard covers it). Both keep "Save & accept" above the phone buttons.
         padding: EdgeInsets.fromLTRB(
-            T.gutter, T.s24, T.gutter, MediaQuery.of(sheetCtx).viewInsets.bottom + T.s24),
+            T.gutter,
+            T.s24,
+            T.gutter,
+            MediaQuery.of(sheetCtx).viewInsets.bottom +
+                MediaQuery.of(sheetCtx).padding.bottom +
+                T.s24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,

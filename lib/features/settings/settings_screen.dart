@@ -89,8 +89,11 @@ class SettingsScreen extends ConsumerWidget {
 
   Widget _dropbox(WidgetRef ref) {
     final s = ref.watch(dropboxControllerProvider);
+    final busy =
+        s.phase == DropboxPhase.connecting || s.phase == DropboxPhase.scanning;
     final (label, color) = switch (s.phase) {
       DropboxPhase.connected || DropboxPhase.scanning => ('Connected', T.appText),
+      DropboxPhase.connecting => ('Connecting', T.inkMeta),
       DropboxPhase.error => ('Error', T.slipping),
       _ => ('Not connected', T.inkMeta),
     };
@@ -110,15 +113,22 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: T.s4),
           Text('${s.noteCount} tagged notes found', style: Typo.meta),
         ],
-        if (s.isConnected) ...[
-          const SizedBox(height: T.s12),
-          GestureDetector(
-            onTap: () => ref.read(dropboxControllerProvider.notifier).disconnect(),
-            child: Text('Disconnect',
-                style: Typo.label.copyWith(
-                    color: T.slipping, decoration: TextDecoration.underline)),
-          ),
+        if (s.message != null && s.phase == DropboxPhase.error) ...[
+          const SizedBox(height: T.s4),
+          Text(s.message!, style: Typo.meta.copyWith(color: T.slipping)),
         ],
+        const SizedBox(height: T.s12),
+        if (s.isConnected)
+          _ghost('Disconnect', T.slipping,
+              () => ref.read(dropboxControllerProvider.notifier).disconnect())
+        else
+          PrimaryButton(
+            busy ? 'Connecting' : 'Connect Dropbox',
+            busy: busy,
+            onPressed: busy
+                ? null
+                : () => ref.read(dropboxControllerProvider.notifier).connect(),
+          ),
       ],
     ));
   }
@@ -162,25 +172,44 @@ class SettingsScreen extends ConsumerWidget {
     ));
   }
 
-  Widget _signOut(BuildContext context, WidgetRef ref) => _panel(GestureDetector(
+  Widget _signOut(BuildContext context, WidgetRef ref) => _panel(
         // Settings is pushed on top of the gate, so after clearing the session
         // we must pop back to root for the sign-in screen to surface.
-        onTap: () async {
+        _ghost('Sign out', T.slipping, () async {
           try {
             await ref.read(authControllerProvider).signOut();
           } catch (_) {}
           if (context.mounted) {
             Navigator.of(context).popUntil((r) => r.isFirst);
           }
-        },
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Sign out', style: Typo.body.copyWith(color: T.slipping)),
-            const Icon(Icons.logout, color: T.slipping, size: 18),
-          ],
+        }, icon: Icons.logout),
+      );
+
+  /// A full-width outlined action button. One shape for Disconnect and Sign out
+  /// so the destructive actions read the same.
+  Widget _ghost(String label, Color color, VoidCallback onTap, {IconData? icon}) =>
+      SizedBox(
+        height: T.hitButton,
+        child: OutlinedButton(
+          onPressed: onTap,
+          style: OutlinedButton.styleFrom(
+            side: BorderSide(color: color.withValues(alpha: 0.5)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(T.rControl)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (icon != null) ...[
+                Icon(icon, color: color, size: 18),
+                const SizedBox(width: T.s8),
+              ],
+              Text(label,
+                  style: Typo.label.copyWith(color: color, fontSize: 15)),
+            ],
+          ),
         ),
-      ));
+      );
 
   Widget _readonly(String text) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: T.s4),
