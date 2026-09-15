@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Grasp accent (T.accent). -->
     <color name="ic_launcher_background">#0077BD</color>
 </resources>
