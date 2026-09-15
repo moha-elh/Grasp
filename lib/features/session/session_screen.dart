@@ -53,6 +53,22 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
       return const VettingView();
     }
 
+    // Surface a failed grade/flag write without interrupting the loop.
+    ref.listen<SessionState>(sessionControllerProvider, (prev, next) {
+      if (next.writeError != null && prev?.writeError != next.writeError) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(
+            backgroundColor: T.ink,
+            content: Text(
+              "Couldn't save your last review. Check your connection.",
+              style: Typo.bodySmall.copyWith(color: T.surface),
+            ),
+            duration: const Duration(seconds: 4),
+          ));
+      }
+    });
+
     final state = ref.watch(sessionControllerProvider);
     final ctrl = ref.read(sessionControllerProvider.notifier);
     final fsrs = ref.read(fsrsProvider);
