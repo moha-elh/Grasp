@@ -1,3 +1,18 @@
+import 'card.dart' show CardType;
+
+/// Minimal read shape for trend analytics: when a review happened, its rating,
+/// and the type of card it was (joined from `cards`). See ReviewsRepository.
+class ReviewRecord {
+  final DateTime reviewedAt;
+  final int rating;
+  final CardType cardType;
+  const ReviewRecord({
+    required this.reviewedAt,
+    required this.rating,
+    required this.cardType,
+  });
+}
+
 /// One review event. Mirrors the `review_logs` table (§8). Feeds analytics
 /// and future FSRS optimization. `rating`: 1 again, 2 hard, 3 good, 4 easy.
 class ReviewLog {

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers.dart';
 import '../../data/models/card.dart';
+import '../../data/models/review_log.dart';
 import '../../data/services/fsrs_service.dart';
 
 /// Per-concept retention rollup (FR-27, FR-28). A "concept" is one source note.
@@ -80,6 +81,65 @@ DeckStats computeDeckStats(List<GraspCard> cards, FsrsService f) {
     concepts,
   );
 }
+
+/// Weekly review-quality trend split by the ring axis (anchor -> name,
+/// mechanism -> explain, application -> apply). Each list is one point per
+/// week, oldest first; a null week means no reviews of that type that week.
+class TrendSeries {
+  final List<double?> name;
+  final List<double?> explain;
+  final List<double?> apply;
+  final int spanDays; // history span, so the screen can gate on >= 14 days
+  const TrendSeries(this.name, this.explain, this.apply, this.spanDays);
+
+  bool get isEmpty => name.isEmpty;
+}
+
+/// Rating (1..4) as a 0..1 quality proxy: again=0, easy=1.
+double _quality(int rating) => ((rating - 1) / 3).clamp(0, 1).toDouble();
+
+/// Pure: bucket review logs into weekly mean-quality points per ring axis.
+/// [now] is injectable for tests.
+TrendSeries computeTrend(List<ReviewRecord> logs, {DateTime? now}) {
+  if (logs.isEmpty) return const TrendSeries([], [], [], 0);
+  final end = now ?? DateTime.now().toUtc();
+  final start = logs
+      .map((r) => r.reviewedAt)
+      .reduce((a, b) => a.isBefore(b) ? a : b);
+  final spanDays = end.difference(start).inDays;
+  final weeks = spanDays ~/ 7 + 1;
+
+  final sums = {
+    for (final t in CardType.values) t: List<double>.filled(weeks, 0),
+  };
+  final counts = {
+    for (final t in CardType.values) t: List<int>.filled(weeks, 0),
+  };
+
+  for (final r in logs) {
+    final w = (r.reviewedAt.difference(start).inDays ~/ 7).clamp(0, weeks - 1);
+    sums[r.cardType]![w] += _quality(r.rating);
+    counts[r.cardType]![w] += 1;
+  }
+
+  List<double?> series(CardType t) => [
+        for (var w = 0; w < weeks; w++)
+          counts[t]![w] == 0 ? null : sums[t]![w] / counts[t]![w],
+      ];
+
+  return TrendSeries(
+    series(CardType.anchor),
+    series(CardType.mechanism),
+    series(CardType.application),
+    spanDays,
+  );
+}
+
+/// Weekly retention/quality trend over the last 90 days of review logs.
+final reviewTrendProvider = FutureProvider.autoDispose<TrendSeries>((ref) async {
+  final logs = await ref.watch(reviewsRepoProvider).recentLogs();
+  return computeTrend(logs);
+});
 
 /// The approved deck (all review states) from Supabase.
 final deckCardsProvider = FutureProvider.autoDispose<List<GraspCard>>(

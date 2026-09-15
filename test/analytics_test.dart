@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:grasp/data/models/card.dart';
+import 'package:grasp/data/models/review_log.dart';
 import 'package:grasp/data/services/fsrs_service.dart';
 import 'package:grasp/features/retention/analytics.dart';
 
@@ -50,5 +51,34 @@ void main() {
     }
     // Anchors recall better than mechanisms in this fixture.
     expect(s.nameRet, greaterThan(s.explainRet));
+  });
+
+  test('computeTrend buckets weekly quality by ring axis and spans history', () {
+    final now = DateTime.utc(2026, 3, 1);
+    ReviewRecord r(CardType t, int rating, int daysAgo) => ReviewRecord(
+          reviewedAt: now.subtract(Duration(days: daysAgo)),
+          rating: rating,
+          cardType: t,
+        );
+    final logs = [
+      // 21 days ago (week 0): strong anchors, weak mechanisms.
+      r(CardType.anchor, 4, 21), // quality 1.0
+      r(CardType.anchor, 3, 21), // quality ~0.67 -> mean 0.833
+      r(CardType.mechanism, 1, 21), // quality 0.0
+      // 0 days ago (week 3): a single application review.
+      r(CardType.application, 3, 0), // quality ~0.67
+    ];
+
+    final t = computeTrend(logs, now: now);
+
+    expect(t.isEmpty, isFalse);
+    expect(t.spanDays, 21);
+    expect(t.name.length, 4); // 21-day span -> 4 weekly buckets
+    expect(t.name[0], closeTo(0.8333, 0.001));
+    expect(t.explain[0], 0.0); // mechanism -> explain series
+    expect(t.name[3], isNull); // no anchor reviews in the latest week
+    expect(t.apply[3], closeTo(0.6667, 0.001)); // application -> apply series
+
+    expect(computeTrend([], now: now).isEmpty, isTrue);
   });
 }

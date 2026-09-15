@@ -69,7 +69,7 @@ class RetentionScreen extends ConsumerWidget {
       const SizedBox(height: T.s24),
       _legend(stats),
       const SizedBox(height: T.s32),
-      _curvePlaceholder(),
+      _trend(ref),
       const SizedBox(height: T.s18),
       _remakeEntry(context, ref),
       const SizedBox(height: T.s32),
@@ -141,23 +141,35 @@ class RetentionScreen extends ConsumerWidget {
       );
 
   /// FR-30 defers long-range trends: the 90-day curve stays hidden until 14
-  /// days of review history exist. Until logs are persisted, that's always now.
-  Widget _curvePlaceholder() => Container(
-        padding: const EdgeInsets.all(T.s18),
-        decoration: BoxDecoration(
-          color: T.surfaceSunk,
-          borderRadius: BorderRadius.circular(T.rControl),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('90-DAY TREND', style: Typo.mono(size: 10)),
-            const SizedBox(height: T.s8),
+  /// days of review history exist, then draws a weekly quality sparkline split
+  /// by the name / explain / apply axis.
+  Widget _trend(WidgetRef ref) {
+    final trend = ref.watch(reviewTrendProvider).asData?.value;
+    final ready = trend != null && !trend.isEmpty && trend.spanDays >= 14;
+    return Container(
+      padding: const EdgeInsets.all(T.s18),
+      decoration: BoxDecoration(
+        color: T.surfaceSunk,
+        borderRadius: BorderRadius.circular(T.rControl),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('90-DAY TREND', style: Typo.mono(size: 10)),
+          const SizedBox(height: T.s8),
+          if (!ready)
             Text('Not enough history yet. The naming vs. mechanism trend '
-                'appears after 14 days of reviews.', style: Typo.bodySmall),
-          ],
-        ),
-      );
+                'appears after 14 days of reviews.', style: Typo.bodySmall)
+          else
+            SizedBox(
+              height: 64,
+              width: double.infinity,
+              child: CustomPaint(painter: _TrendPainter(trend)),
+            ),
+        ],
+      ),
+    );
+  }
 
   Widget _conceptRow(BuildContext context, ConceptStats c, f) {
     return Container(
@@ -213,4 +225,48 @@ class RetentionScreen extends ConsumerWidget {
             : T.inkMeta;
     return Tag('${pts >= 0 ? '+' : ''}$pts pt gap', color);
   }
+}
+
+/// Three weekly quality polylines (name / explain / apply), y = 0..1 quality.
+/// Null weeks are skipped, connecting across gaps so a sparse series still reads.
+class _TrendPainter extends CustomPainter {
+  final TrendSeries t;
+  const _TrendPainter(this.t);
+
+  static const _inset = 3.0; // keep round caps off the top/bottom edge
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    _line(canvas, size, t.name, T.ringName);
+    _line(canvas, size, t.explain, T.ringExplain);
+    _line(canvas, size, t.apply, T.appText);
+  }
+
+  void _line(Canvas c, Size size, List<double?> pts, Color color) {
+    if (pts.length < 2) return;
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..color = color;
+    final usable = size.height - _inset * 2;
+    final dx = size.width / (pts.length - 1);
+    Path? path;
+    for (var i = 0; i < pts.length; i++) {
+      final v = pts[i];
+      if (v == null) continue;
+      final x = i * dx;
+      final y = _inset + (1 - v.clamp(0, 1)) * usable;
+      if (path == null) {
+        path = Path()..moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+    }
+    if (path != null) c.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(_TrendPainter old) => old.t != t;
 }
