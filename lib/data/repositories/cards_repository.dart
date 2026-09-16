@@ -68,8 +68,9 @@ class CardsRepository {
     });
   }
 
-  /// Pending cards awaiting vetting, drawn across all notes (FR-14).
-  Future<List<GraspCard>> pendingToVet({int limit = 20}) async {
+  /// Pending cards awaiting vetting, drawn across all notes (FR-14). Loads the
+  /// whole pending set (generation caps it), not an arbitrary batch of 20.
+  Future<List<GraspCard>> pendingToVet({int limit = 500}) async {
     final rows = await _t
         .select()
         .eq('status', 'pending')

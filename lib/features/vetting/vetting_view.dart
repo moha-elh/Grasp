@@ -60,20 +60,35 @@ class VettingView extends ConsumerWidget {
         ],
       );
 
-  Widget _dots(VettingState s) => Row(
-        children: List.generate(s.total, (i) {
-          final done = i < s.index;
-          return Container(
-            margin: const EdgeInsets.only(right: 6),
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: i == s.index ? T.ink : (done ? T.inkMeta : T.hairline),
-            ),
-          );
-        }),
+  // Dots read well for a small batch; beyond that they overflow the row, so a
+  // slim progress bar carries the same "how far through" signal.
+  Widget _dots(VettingState s) {
+    if (s.total > 20) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(T.rPill),
+        child: LinearProgressIndicator(
+          value: s.total == 0 ? 0 : s.index / s.total,
+          minHeight: 6,
+          backgroundColor: T.hairline,
+          valueColor: const AlwaysStoppedAnimation(T.ink),
+        ),
       );
+    }
+    return Row(
+      children: List.generate(s.total, (i) {
+        final done = i < s.index;
+        return Container(
+          margin: const EdgeInsets.only(right: 6),
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: i == s.index ? T.ink : (done ? T.inkMeta : T.hairline),
+          ),
+        );
+      }),
+    );
+  }
 
   Widget _buttons(BuildContext context, GraspCard card, VettingController ctrl) {
     return Row(

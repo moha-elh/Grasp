@@ -70,28 +70,50 @@ class LlmService {
     );
   }
 
-  /// Single JSON-mode chat round-trip against the configured provider.
+  /// Single JSON-mode chat round-trip. Tries the primary Groq key, then the
+  /// optional fallback key when the primary is rate limited, rejected, or the
+  /// request fails (a plain bad-request 4xx is not retried - another key won't
+  /// fix it).
   Future<String> _chat(String system, String user) async {
-    final resp = await _http.post(
-      Uri.https(Config.llmBaseUrl, Config.llmPath),
-      headers: {
-        'Authorization': 'Bearer ${Config.llmKey}',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'model': Config.llmModel,
-        'response_format': {'type': 'json_object'},
-        'messages': [
-          {'role': 'system', 'content': system},
-          {'role': 'user', 'content': user},
-        ],
-      }),
-    );
-    if (resp.statusCode != 200) {
-      throw StateError('LLM failed (${resp.statusCode}): ${resp.body}');
+    final keys = <String>[Config.llmKey];
+    final fb = Config.llmKeyFallback;
+    if (fb != null && fb.isNotEmpty && fb != Config.llmKey) keys.add(fb);
+
+    final payload = jsonEncode({
+      'model': Config.llmModel,
+      'response_format': {'type': 'json_object'},
+      'messages': [
+        {'role': 'system', 'content': system},
+        {'role': 'user', 'content': user},
+      ],
+    });
+
+    Object error = StateError('LLM failed');
+    for (var i = 0; i < keys.length; i++) {
+      try {
+        final resp = await _http.post(
+          Uri.https(Config.llmBaseUrl, Config.llmPath),
+          headers: {
+            'Authorization': 'Bearer ${keys[i]}',
+            'Content-Type': 'application/json',
+          },
+          body: payload,
+        );
+        if (resp.statusCode == 200) {
+          final body = jsonDecode(resp.body) as Map<String, dynamic>;
+          return body['choices'][0]['message']['content'] as String;
+        }
+        error = StateError('LLM failed (${resp.statusCode}): ${resp.body}');
+        final worthFallback = resp.statusCode == 429 ||
+            resp.statusCode == 401 ||
+            resp.statusCode == 403 ||
+            resp.statusCode >= 500;
+        if (!worthFallback) break;
+      } catch (e) {
+        error = e; // network error: worth trying the other key
+      }
     }
-    final body = jsonDecode(resp.body) as Map<String, dynamic>;
-    return body['choices'][0]['message']['content'] as String;
+    throw error is StateError ? error : StateError('LLM failed: $error');
   }
 
   List<GeneratedCard> _parse(String text) {

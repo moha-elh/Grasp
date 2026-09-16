@@ -9,6 +9,9 @@ class Config {
 
   // --- LLM: OpenAI-compatible provider (Groq default) ---
   static String get llmKey => _req('GROQ_API_KEY');
+  // Optional second Groq key: used as a fallback when the primary is rate
+  // limited or rejected, so generation keeps working.
+  static String? get llmKeyFallback => dotenv.maybeGet('GROQ_API_KEY_2');
   static const llmBaseUrl = 'api.groq.com';
   static const llmPath = '/openai/v1/chat/completions';
   static const llmModel = 'openai/gpt-oss-120b';
