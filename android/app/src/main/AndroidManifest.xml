@@ -3,6 +3,11 @@
          google_fonts. The debug/profile manifests declare this too, but release
          builds use only this one, so it must live here or all networking fails. -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Daily review reminder (flutter_local_notifications). POST_NOTIFICATIONS
+         is required on Android 13+; RECEIVE_BOOT_COMPLETED lets the reminder
+         survive a reboot. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <application
         android:label="Grasp"
         android:name="${applicationName}"

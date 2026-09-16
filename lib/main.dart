@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app.dart';
 import 'core/config.dart';
 import 'core/net.dart';
+import 'data/services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,5 +16,8 @@ Future<void> main() async {
     publishableKey: Config.supabaseKey,
     httpClient: resilientHttpClient(),
   );
+  await NotificationService.init();
+  // Re-arm the daily reminder (Android drops alarms on reboot).
+  await NotificationService.rescheduleFromPrefs();
   runApp(const ProviderScope(child: GraspApp()));
 }

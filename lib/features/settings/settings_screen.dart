@@ -8,6 +8,7 @@ import '../../design/widgets/primary_button.dart';
 import '../auth/auth_controller.dart';
 import '../dropbox/dropbox_controller.dart';
 import '../generation/generation_controller.dart';
+import 'notification_controller.dart';
 import 'settings_controller.dart';
 
 /// Screen 12 · Settings (FR-8, FR-17). The new-card throttle (with the load
@@ -35,6 +36,9 @@ class SettingsScreen extends ConsumerWidget {
             const SizedBox(height: T.s12),
             _readonly('Due reviews are always served in full and never capped. '
                 'Retention depends on them.'),
+            const SizedBox(height: T.s32),
+            _section('REMINDERS'),
+            _reminder(context, ref),
             const SizedBox(height: T.s32),
             _section('NOTES'),
             _dropbox(ref),
@@ -83,6 +87,63 @@ class SettingsScreen extends ConsumerWidget {
         Text('Raising this means more new cards now, and a heavier review load '
             'in the weeks after, since every new card keeps coming back until '
             'it sticks.', style: Typo.bodySmall),
+      ],
+    ));
+  }
+
+  Widget _reminder(BuildContext context, WidgetRef ref) {
+    final s = ref.watch(notificationControllerProvider);
+    final ctrl = ref.read(notificationControllerProvider.notifier);
+    return _panel(Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text('Daily review reminder',
+                  style: Typo.body.copyWith(color: T.ink)),
+            ),
+            Switch(
+              value: s.enabled,
+              activeThumbColor: T.accent,
+              onChanged: (v) async {
+                final ok = await ctrl.setEnabled(v);
+                if (!ok && context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    backgroundColor: T.ink,
+                    content: Text(
+                      'Notifications are blocked. Enable them for Grasp in '
+                      'system settings.',
+                      style: Typo.bodySmall.copyWith(color: T.surface),
+                    ),
+                  ));
+                }
+              },
+            ),
+          ],
+        ),
+        if (s.enabled)
+          GestureDetector(
+            onTap: () async {
+              final picked =
+                  await showTimePicker(context: context, initialTime: s.time);
+              if (picked != null) await ctrl.setTime(picked);
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(top: T.s8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Remind me at', style: Typo.bodySmall),
+                  Text(s.time.format(context),
+                      style: Typo.mono(size: 13, color: T.accent)),
+                ],
+              ),
+            ),
+          )
+        else
+          Text('A gentle nudge to run your daily dose.', style: Typo.bodySmall),
       ],
     ));
   }
