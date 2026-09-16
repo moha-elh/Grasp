@@ -19,11 +19,11 @@ class GenerationService {
   GenerationService(
       this._dropbox, this._llm, this._cards, this._coverage, this._fsrs);
 
-  /// FR-8 target type mix, mechanism-weighted toward the explaining goal.
+  /// FR-8 target type mix: an even split across the three card types.
   static const _targetMix = {
-    'anchor': 0.25,
-    'mechanism': 0.50,
-    'application': 0.25,
+    'anchor': 0.34,
+    'mechanism': 0.33,
+    'application': 0.33,
   };
 
   /// Run one bounded pass. Returns how many cards were added.

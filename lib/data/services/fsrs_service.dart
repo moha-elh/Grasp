@@ -9,8 +9,16 @@ import '../models/review_log.dart';
 class FsrsService {
   final fsrs.Scheduler _scheduler;
 
+  // No sub-day learning/relearning steps: this is a once-a-day review app, so
+  // every grade schedules a day-scale interval (Again/Hard/Good/Easy spread out
+  // as the card matures) instead of the default 1m/10m steps that resurface a
+  // card minutes later and make all four grades look the same on a new card.
   FsrsService([fsrs.Scheduler? scheduler])
-      : _scheduler = scheduler ?? fsrs.Scheduler();
+      : _scheduler = scheduler ??
+            fsrs.Scheduler(
+              learningSteps: const [],
+              relearningSteps: const [],
+            );
 
   /// A brand-new card's initial FSRS state (stored as jsonb on insert).
   Map<String, dynamic> newCard() => fsrs.Card(

@@ -6,6 +6,7 @@ import '../../data/models/card.dart';
 import '../../data/repositories/cards_repository.dart';
 import '../../data/repositories/reviews_repository.dart';
 import '../../data/services/fsrs_service.dart';
+import '../session/daily_controller.dart';
 import '../settings/settings_controller.dart';
 
 class SessionState {
@@ -58,29 +59,40 @@ class SessionState {
 /// reviews in full plus a throttled slice of new cards, persisting each grade.
 final sessionControllerProvider =
     StateNotifierProvider.autoDispose<SessionController, SessionState>(
-  (ref) => SessionController(
-    cards: ref.watch(cardsRepoProvider),
-    reviews: ref.watch(reviewsRepoProvider),
-    fsrs: ref.watch(fsrsProvider),
-    newPerDay: ref.watch(newCardsPerDayProvider),
-  ),
+  (ref) {
+    final perDay = ref.watch(newCardsPerDayProvider);
+    // read (not watch) the daily state so recording an introduction does not
+    // rebuild this provider and re-draw the allotment.
+    final remaining =
+        ref.read(dailyProgressProvider).remainingNew(perDay, DailyController.today);
+    return SessionController(
+      cards: ref.watch(cardsRepoProvider),
+      reviews: ref.watch(reviewsRepoProvider),
+      fsrs: ref.watch(fsrsProvider),
+      newRemaining: remaining,
+      onIntroduced: ref.read(dailyProgressProvider.notifier).recordIntroduced,
+    );
+  },
 );
 
 class SessionController extends StateNotifier<SessionState> {
   final CardsRepository? _cards;
   final ReviewsRepository? _reviews;
   final FsrsService? _fsrs;
-  final int _newPerDay;
+  final int _newRemaining;
+  final void Function(int)? _onIntroduced;
 
   SessionController({
     required CardsRepository cards,
     required ReviewsRepository reviews,
     required FsrsService fsrs,
-    required int newPerDay,
+    required int newRemaining,
+    void Function(int)? onIntroduced,
   })  : _cards = cards,
         _reviews = reviews,
         _fsrs = fsrs,
-        _newPerDay = newPerDay,
+        _newRemaining = newRemaining,
+        _onIntroduced = onIntroduced,
         super(const SessionState(queue: [], loading: true)) {
     _load();
   }
@@ -90,14 +102,19 @@ class SessionController extends StateNotifier<SessionState> {
       : _cards = null,
         _reviews = null,
         _fsrs = null,
-        _newPerDay = 0,
+        _newRemaining = 0,
+        _onIntroduced = null,
         super(SessionState(queue: queue));
 
   Future<void> _load() async {
     try {
-      // Due reviews are served IN FULL (FR-17); new cards are throttled.
+      // Due reviews are served IN FULL (FR-17); new cards are capped by what is
+      // left of today's allotment, so reopening does not draw a fresh batch.
       final due = await _cards!.dueCards();
-      final fresh = await _cards.newCards(limit: _newPerDay);
+      final fresh = _newRemaining > 0
+          ? await _cards.newCards(limit: _newRemaining)
+          : <GraspCard>[];
+      if (fresh.isNotEmpty) _onIntroduced?.call(fresh.length);
       if (mounted) state = SessionState(queue: [...due, ...fresh]);
     } catch (e) {
       if (mounted) state = SessionState(queue: const [], error: e.toString());

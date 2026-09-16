@@ -8,6 +8,7 @@ import '../../design/tokens.dart';
 import '../../design/typography.dart';
 import '../../design/widgets/primary_button.dart';
 import '../../design/widgets/type_badge.dart';
+import '../review/widgets/source_note_sheet.dart';
 import 'analytics.dart';
 import 'retention_screen.dart' show pct;
 import 'widgets/dual_ring.dart';
@@ -57,13 +58,20 @@ class ConceptDetailScreen extends ConsumerWidget {
             const SizedBox(height: T.s12),
             for (final c in weakest.take(3)) _weakCard(c, f),
             const SizedBox(height: T.s32),
-            PrimaryButton('Open note', onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                backgroundColor: T.ink,
-                content: Text(concept.notePath ?? concept.concept,
-                    style: Typo.bodySmall.copyWith(color: T.surface)),
-              ));
-            }),
+            if (concept.cards.isNotEmpty)
+              PrimaryButton('Open note', onPressed: () {
+                showModalBottomSheet<void>(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: T.surface,
+                  showDragHandle: true,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(T.rCard)),
+                  ),
+                  builder: (_) => SourceNoteSheet(concept.cards.first),
+                );
+              }),
           ],
         ),
       ),

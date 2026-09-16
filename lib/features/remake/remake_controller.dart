@@ -31,9 +31,9 @@ final remakePileProvider =
 
 /// FR-8 target type mix for regeneration, mirroring GenerationService.
 const _remakeTargetMix = {
-  'anchor': 0.25,
-  'mechanism': 0.50,
-  'application': 0.25,
+  'anchor': 0.34,
+  'mechanism': 0.33,
+  'application': 0.33,
 };
 
 class RemakePileController extends StateNotifier<RemakeState> {
@@ -105,15 +105,16 @@ class RemakePileController extends StateNotifier<RemakeState> {
   }
 
   /// "I was wrong, keep it": send the card straight back into the deck.
-  void accept(String cardId) {
-    _repo?.setStatus(cardId, CardStatus.approved);
+  Future<void> accept(String cardId) async {
     _remove(cardId);
+    // Supabase's builder is lazy: the write only fires when awaited.
+    await _repo?.setStatus(cardId, CardStatus.approved);
   }
 
   /// Delete the card for good.
-  void delete(String cardId) {
-    _repo?.setStatus(cardId, CardStatus.discarded);
+  Future<void> delete(String cardId) async {
     _remove(cardId);
+    await _repo?.setStatus(cardId, CardStatus.discarded);
   }
 
   void _remove(String cardId) => state =

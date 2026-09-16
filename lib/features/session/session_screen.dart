@@ -5,19 +5,17 @@ import '../../core/providers.dart';
 import '../../data/models/card.dart';
 import '../../design/tokens.dart';
 import '../../design/typography.dart';
-import '../review/session_complete_view.dart';
+import '../remake/remake_controller.dart';
 import '../review/session_controller.dart';
 import '../review/widgets/grading_chips.dart';
-import '../../design/widgets/empty_state.dart';
 import '../review/widgets/source_note_sheet.dart';
 import '../review/widgets/study_card.dart';
 import '../settings/settings_button.dart';
-import '../vetting/vetting_controller.dart';
-import '../vetting/vetting_view.dart';
+import 'daily_controller.dart';
 
-/// Default launch surface (screen 02/03, FR-16). Runs one review session over
-/// the queue. Tells the shell to hide the tab bar while a session is active so
-/// the loop isn't interrupted (§14).
+/// Default launch surface (screen 02/03, FR-16). Runs the day's dose of reviews
+/// (vetting lives in its own tab now). Tells the shell to hide the tab bar while
+/// a review is active so the loop isn't interrupted (§14).
 class SessionScreen extends ConsumerStatefulWidget {
   final ValueChanged<bool> onActiveChanged;
   const SessionScreen({super.key, required this.onActiveChanged});
@@ -28,6 +26,7 @@ class SessionScreen extends ConsumerStatefulWidget {
 
 class _SessionScreenState extends ConsumerState<SessionScreen> {
   bool _active = false;
+  bool _markedDone = false;
 
   void _syncActive(bool a) {
     if (a == _active) return;
@@ -39,21 +38,6 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Phase 1: swipe-vet the bounded pending batch (FR-15), then reviews.
-    final vet = ref.watch(vettingControllerProvider);
-    if (vet.loading) {
-      _syncActive(false);
-      return _loading();
-    }
-    if (vet.error != null) {
-      _syncActive(false);
-      return _error(vet.error!);
-    }
-    if (!vet.isEmpty && !vet.isComplete) {
-      _syncActive(true);
-      return const VettingView();
-    }
-
     // Surface a failed grade/flag write without interrupting the loop.
     ref.listen<SessionState>(sessionControllerProvider, (prev, next) {
       if (next.writeError != null && prev?.writeError != next.writeError) {
@@ -82,17 +66,9 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
       _syncActive(false);
       return _error(state.error!);
     }
-    if (state.isEmpty) {
-      _syncActive(false);
-      return _emptyState();
-    }
     if (state.isComplete) {
       _syncActive(false);
-      return SessionCompleteView(
-        reviewed: state.reviewed,
-        flagged: state.flagged,
-        nextDue: 'Next cards due tomorrow',
-      );
+      return _done(state);
     }
 
     _syncActive(true);
@@ -151,16 +127,115 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
     );
   }
 
+  /// The daily dose is finished (or there was nothing due). One rest screen,
+  /// with the mascot instead of a check, plus the streak.
+  Widget _done(SessionState state) {
+    final daily = ref.watch(dailyProgressProvider);
+    final finished = state.reviewed > 0;
+    // Complete the day's dose once, when the user actually reviewed something.
+    if (finished && !_markedDone) {
+      _markedDone = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(dailyProgressProvider.notifier).markCompleted();
+      });
+    }
+    final today = DailyController.today;
+    final doneToday = finished || daily.doneOn(today) ||
+        (daily.introDate == today && daily.introducedToday > 0);
+    final streak =
+        daily.shownStreak(today, DailyController.yesterday) + (finished ? 1 : 0);
+
+    return SafeArea(
+      child: Padding(
+        padding:
+            const EdgeInsets.symmetric(horizontal: T.gutter, vertical: T.s18),
+        child: Column(
+          children: [
+            const Align(
+                alignment: Alignment.centerRight, child: SettingsButton()),
+            Expanded(
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset('Mascot.png', width: 200, height: 200),
+                    Text(doneToday ? 'Done for today' : 'Nothing to review yet',
+                        textAlign: TextAlign.center, style: Typo.display(32)),
+                    const SizedBox(height: T.s18),
+                    if (doneToday) _streakPill(streak),
+                    if (finished) ...[
+                      const SizedBox(height: T.s24),
+                      _counts(state),
+                    ],
+                    const SizedBox(height: T.s18),
+                    Text(
+                      doneToday
+                          ? 'Retention is about coming back tomorrow, not '
+                              'staying now.'
+                          : 'Cards appear here once you approve them in the Vet '
+                              'tab.',
+                      textAlign: TextAlign.center,
+                      style: Typo.bodySmall.copyWith(color: T.inkMeta),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _streakPill(int streak) => Container(
+        padding:
+            const EdgeInsets.symmetric(horizontal: T.s18, vertical: T.s8),
+        decoration: BoxDecoration(
+          color: T.accent.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(T.rPill),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.local_fire_department, size: 18, color: T.accent),
+            const SizedBox(width: T.s8),
+            Text('$streak day${streak == 1 ? '' : 's'} streak',
+                style: Typo.label.copyWith(color: T.accent, fontSize: 14)),
+          ],
+        ),
+      );
+
+  Widget _counts(SessionState state) => Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _stat('${state.reviewed}', 'reviewed', T.accent),
+          if (state.flagged > 0) ...[
+            const SizedBox(width: T.s32),
+            _stat('${state.flagged}', 'to remake', T.remakeText),
+          ],
+        ],
+      );
+
+  Widget _stat(String value, String label, Color color) => Column(
+        children: [
+          Text(value, style: Typo.display(34).copyWith(color: color)),
+          Text(label.toUpperCase(), style: Typo.mono(size: 10)),
+        ],
+      );
+
   void _flag(SessionController ctrl) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       backgroundColor: T.ink,
       content: Text(
-        'Flagged as badly made, not because it’s hard. Hard cards stay.',
+        'Flagged as badly made, not because it is hard. Hard cards stay.',
         style: Typo.bodySmall.copyWith(color: T.surface),
       ),
       duration: const Duration(seconds: 3),
     ));
     ctrl.flag();
+    // The remake pile is kept alive by the Retention tab, so refresh it to pick
+    // up the just-flagged card.
+    ref.invalidate(remakePileProvider);
   }
 
   void _showSource(GraspCard card) {
@@ -182,10 +257,12 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
 
   Widget _error(String message) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: T.gutter, vertical: T.s32),
+          padding:
+              const EdgeInsets.symmetric(horizontal: T.gutter, vertical: T.s32),
           child: Column(
             children: [
-              const Align(alignment: Alignment.centerRight, child: SettingsButton()),
+              const Align(
+                  alignment: Alignment.centerRight, child: SettingsButton()),
               Expanded(
                 child: Center(
                   child: Text("Couldn't load your cards.\n$message",
@@ -197,24 +274,4 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
           ),
         ),
       );
-
-  Widget _emptyState() {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: T.gutter, vertical: T.s32),
-        child: Column(
-          children: const [
-            Align(alignment: Alignment.centerRight, child: SettingsButton()),
-            Expanded(
-              child: EmptyState(
-                icon: Icons.self_improvement_outlined,
-                title: 'Nothing due',
-                message: 'You’re clear for today. Come back tomorrow.',
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

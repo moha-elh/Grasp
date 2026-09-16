@@ -133,15 +133,15 @@ class SettingsScreen extends ConsumerWidget {
     ));
   }
 
-  /// Read-only target proportions for background generation (FR-8). The mix is
-  /// mechanism-weighted - the app's goal is explaining, not just naming.
+  /// Read-only target proportions for background generation (FR-8). An even
+  /// split across the three card types.
   Widget _mix() => _panel(Column(
         children: const [
-          _MixRow('Anchor', 'naming / definition', 0.25),
+          _MixRow('Anchor', 'naming / definition', 0.34),
           SizedBox(height: T.s12),
-          _MixRow('Mechanism', 'why / how it works', 0.50),
+          _MixRow('Mechanism', 'why / how it works', 0.33),
           SizedBox(height: T.s12),
-          _MixRow('Application', 'when to use it', 0.25),
+          _MixRow('Application', 'when to use it', 0.33),
         ],
       ));
 
