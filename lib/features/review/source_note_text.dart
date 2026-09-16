@@ -6,19 +6,29 @@
 /// lines) and unwrap Obsidian wiki-links, leaving the note body prose.
 String cleanNoteBody(String raw) {
   var s = raw.replaceAll('\r\n', '\n');
-  // Leading YAML frontmatter block (date, tags, refs live here).
-  s = s.replaceFirst(RegExp(r'^---\n.*?\n---\n', dotAll: true), '');
+  // Leading YAML frontmatter block (date, status, tags, refs live here). Allow
+  // a BOM or leading blank lines before the opening fence.
+  s = s.replaceFirst(
+      RegExp(r'^﻿?\s*---\n.*?\n---[ \t]*\n', dotAll: true), '');
+  // Cut a trailing References / Related / Links / Sources section.
+  s = s.replaceFirst(
+      RegExp(r'\n#{1,6}[ \t]*(references|related|links|sources|see also)\b.*$',
+          dotAll: true, caseSensitive: false),
+      '\n');
   // Unwrap [[link|alias]] -> alias, [[link]] -> link.
   s = s.replaceAllMapped(RegExp(r'\[\[([^\]|]+)\|([^\]]+)\]\]'), (m) => m[2]!);
   s = s.replaceAllMapped(RegExp(r'\[\[([^\]]+)\]\]'), (m) => m[1]!);
-  // Drop lines that are only hashtags (headings like "# Title" are kept, since
-  // the hash there is followed by a space, not word characters).
   s = s
       .split('\n')
       .where((l) {
         final t = l.trim();
         if (t.isEmpty) return true;
-        return !RegExp(r'^(#[A-Za-z0-9_/-]+\s*)+$').hasMatch(t);
+        // Tag-only lines (headings "# Title" are kept: the hash is followed by
+        // a space, not word characters).
+        if (RegExp(r'^(#[A-Za-z0-9_/-]+\s*)+$').hasMatch(t)) return false;
+        // Dataview / inline metadata fields, e.g. "status:: done".
+        if (RegExp(r'^[A-Za-z][\w ]*::').hasMatch(t)) return false;
+        return true;
       })
       .join('\n');
   // Collapse runs of blank lines.

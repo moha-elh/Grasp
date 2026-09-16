@@ -117,11 +117,19 @@ class StudyCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             TypeBadge.type(card.cardType),
-            GestureDetector(
-              onTap: onOpenSource,
-              child: Text('Source note',
-                  style: Typo.meta.copyWith(
-                      color: T.ink, decoration: TextDecoration.underline)),
+            OutlinedButton.icon(
+              onPressed: onOpenSource,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: T.ink,
+                side: const BorderSide(color: T.hairline),
+                shape: const StadiumBorder(),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: T.s12, vertical: T.s8),
+                visualDensity: VisualDensity.compact,
+              ),
+              icon: const Icon(Icons.menu_book_outlined, size: 15),
+              label: Text('Source note',
+                  style: Typo.label.copyWith(fontSize: 13, color: T.ink)),
             ),
           ],
         ),

@@ -7,6 +7,7 @@ import '../../../data/models/card.dart';
 import '../../../design/tokens.dart';
 import '../../../design/typography.dart';
 import '../source_note_text.dart';
+import 'markdown_note.dart';
 
 /// Screen 04 · Source note (FR-20). Reads the whole vault note (frontmatter,
 /// tags and refs stripped) with the card's source passage highlighted, so the
@@ -84,22 +85,10 @@ class _SourceNoteSheetState extends ConsumerState<SourceNoteSheet> {
           ]);
         }
         final body = cleanNoteBody(snap.data!);
-        final p = splitOnQuote(body, card.sourceExcerpt);
-        return ListView(controller: scroll, children: [
-          SelectableText.rich(TextSpan(style: Typo.body, children: [
-            if (p.before.isNotEmpty) TextSpan(text: p.before),
-            if (p.match.isNotEmpty)
-              TextSpan(
-                text: p.match,
-                style: Typo.body.copyWith(
-                  backgroundColor: T.accent.withValues(alpha: 0.20),
-                  color: T.ink,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            if (p.after.isNotEmpty) TextSpan(text: p.after),
-          ])),
-        ]);
+        return ListView(
+          controller: scroll,
+          children: [MarkdownNote(body, highlight: card.sourceExcerpt)],
+        );
       },
     );
   }

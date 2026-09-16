@@ -22,6 +22,20 @@ void main() {
     expect(p.after.contains('Outro.'), isTrue);
   });
 
+  test('cleanNoteBody drops a References section and dataview fields', () {
+    const raw = '# Title\n'
+        'status:: done\n'
+        'Body sentence.\n'
+        '## References\n'
+        '- [[Some Link]]\n'
+        '- another';
+    final out = cleanNoteBody(raw);
+    expect(out.contains('status::'), isFalse);
+    expect(out.contains('References'), isFalse);
+    expect(out.contains('Some Link'), isFalse);
+    expect(out.contains('Body sentence.'), isTrue);
+  });
+
   test('splitOnQuote returns whole note when there is no match', () {
     final p = splitOnQuote('abc', 'xyz');
     expect(p.match, '');
