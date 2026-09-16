@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -52,9 +54,17 @@ class DailyController extends StateNotifier<DailyState> {
   static const _kIntroDate = 'new_intro_date';
   static const _kIntroCount = 'new_intro_count';
 
+  final _ready = Completer<void>();
+
+  /// Completes once persisted progress is loaded, so the session can size the
+  /// day's dose without racing the async read.
+  Future<void> get ready => _ready.future;
+
   DailyController() : super(const DailyState()) {
     _load();
   }
+
+  int remainingNewToday(int perDay) => state.remainingNew(perDay, today);
 
   static String dateKey(DateTime d) =>
       '${d.year.toString().padLeft(4, '0')}-'
@@ -73,6 +83,7 @@ class DailyController extends StateNotifier<DailyState> {
       introDate: p.getString(_kIntroDate),
       introducedToday: p.getInt(_kIntroCount) ?? 0,
     );
+    if (!_ready.isCompleted) _ready.complete();
   }
 
   /// Record that [n] new cards were drawn into today's dose.

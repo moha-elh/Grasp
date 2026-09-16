@@ -59,40 +59,33 @@ class SessionState {
 /// reviews in full plus a throttled slice of new cards, persisting each grade.
 final sessionControllerProvider =
     StateNotifierProvider.autoDispose<SessionController, SessionState>(
-  (ref) {
-    final perDay = ref.watch(newCardsPerDayProvider);
-    // read (not watch) the daily state so recording an introduction does not
-    // rebuild this provider and re-draw the allotment.
-    final remaining =
-        ref.read(dailyProgressProvider).remainingNew(perDay, DailyController.today);
-    return SessionController(
-      cards: ref.watch(cardsRepoProvider),
-      reviews: ref.watch(reviewsRepoProvider),
-      fsrs: ref.watch(fsrsProvider),
-      newRemaining: remaining,
-      onIntroduced: ref.read(dailyProgressProvider.notifier).recordIntroduced,
-    );
-  },
+  (ref) => SessionController(
+    cards: ref.watch(cardsRepoProvider),
+    reviews: ref.watch(reviewsRepoProvider),
+    fsrs: ref.watch(fsrsProvider),
+    perDay: ref.watch(newCardsPerDayProvider),
+    daily: ref.read(dailyProgressProvider.notifier),
+  ),
 );
 
 class SessionController extends StateNotifier<SessionState> {
   final CardsRepository? _cards;
   final ReviewsRepository? _reviews;
   final FsrsService? _fsrs;
-  final int _newRemaining;
-  final void Function(int)? _onIntroduced;
+  final int _perDay;
+  final DailyController? _daily;
 
   SessionController({
     required CardsRepository cards,
     required ReviewsRepository reviews,
     required FsrsService fsrs,
-    required int newRemaining,
-    void Function(int)? onIntroduced,
+    required int perDay,
+    required DailyController daily,
   })  : _cards = cards,
         _reviews = reviews,
         _fsrs = fsrs,
-        _newRemaining = newRemaining,
-        _onIntroduced = onIntroduced,
+        _perDay = perDay,
+        _daily = daily,
         super(const SessionState(queue: [], loading: true)) {
     _load();
   }
@@ -102,19 +95,22 @@ class SessionController extends StateNotifier<SessionState> {
       : _cards = null,
         _reviews = null,
         _fsrs = null,
-        _newRemaining = 0,
-        _onIntroduced = null,
+        _perDay = 0,
+        _daily = null,
         super(SessionState(queue: queue));
 
   Future<void> _load() async {
     try {
-      // Due reviews are served IN FULL (FR-17); new cards are capped by what is
-      // left of today's allotment, so reopening does not draw a fresh batch.
+      // Size the new-card intake against today's remaining allotment, waiting
+      // for persisted progress so a cold start does not re-draw a fresh batch.
+      await _daily!.ready;
+      final remaining = _daily.remainingNewToday(_perDay);
+      // Due reviews are served IN FULL (FR-17); new cards are capped.
       final due = await _cards!.dueCards();
-      final fresh = _newRemaining > 0
-          ? await _cards.newCards(limit: _newRemaining)
+      final fresh = remaining > 0
+          ? await _cards.newCards(limit: remaining)
           : <GraspCard>[];
-      if (fresh.isNotEmpty) _onIntroduced?.call(fresh.length);
+      if (fresh.isNotEmpty) await _daily.recordIntroduced(fresh.length);
       if (mounted) state = SessionState(queue: [...due, ...fresh]);
     } catch (e) {
       if (mounted) state = SessionState(queue: const [], error: e.toString());
