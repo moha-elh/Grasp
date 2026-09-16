@@ -36,6 +36,19 @@ void main() {
     expect(out.contains('Body sentence.'), isTrue);
   });
 
+  test('cleanNoteBody strips labeled metadata lines even without frontmatter', () {
+    const raw = 'Date: 2024-01-01\n'
+        'Tags: #a #b\n'
+        'Status: done\n'
+        '**Author**: me\n'
+        'The actual body.';
+    final out = cleanNoteBody(raw);
+    expect(out.contains('2024-01-01'), isFalse);
+    expect(out.contains('Status'), isFalse);
+    expect(out.contains('Author'), isFalse);
+    expect(out.trim(), 'The actual body.');
+  });
+
   test('splitOnQuote returns whole note when there is no match', () {
     final p = splitOnQuote('abc', 'xyz');
     expect(p.match, '');

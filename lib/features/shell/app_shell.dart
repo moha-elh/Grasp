@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../design/tokens.dart';
 import '../../design/typography.dart';
 import '../explore/explore_screen.dart';
-import '../generation/generation_controller.dart';
 import '../retention/retention_screen.dart';
 import '../session/session_screen.dart';
 import '../vetting/vetting_controller.dart';
@@ -25,15 +24,8 @@ class _AppShellState extends ConsumerState<AppShell> {
   int _index = 0;
   bool _sessionActive = false;
 
-  @override
-  void initState() {
-    super.initState();
-    // Kick off one background generation pass on entry (FR-7). No-ops when
-    // signed out or when the pending queue is already full.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(generationControllerProvider.notifier).runPass();
-    });
-  }
+  // Generation is manual now (the button in Settings), so it never runs by
+  // itself on app entry.
 
   static const _tabs = [
     _Tab('Session', Icons.school_outlined, Icons.school),

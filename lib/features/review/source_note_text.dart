@@ -4,12 +4,22 @@
 
 /// Strip the metadata the user does not want to read (frontmatter, tag-only
 /// lines) and unwrap Obsidian wiki-links, leaving the note body prose.
+/// Metadata labels stripped wherever they head a line (frontmatter, dataview,
+/// or plain "Label: value"): the date/tags/status/refs the reader does not want.
+final _metaLabel = RegExp(
+    r'^(date|created|updated|modified|time|tags?|status|aliases?|alias|author|'
+    r'source|sources|link|links|references?|related|see also|url|cssclass(?:es)?|'
+    r'publish|up|prev|previous|next|category|categories|type)\b\s*:{1,2}',
+    caseSensitive: false);
+
 String cleanNoteBody(String raw) {
   var s = raw.replaceAll('\r\n', '\n');
-  // Leading YAML frontmatter block (date, status, tags, refs live here). Allow
-  // a BOM or leading blank lines before the opening fence.
+  // Leading YAML frontmatter block. Lenient: a BOM or blank lines may precede
+  // the opening fence, and the block may end with `---` or `...`.
   s = s.replaceFirst(
-      RegExp(r'^﻿?\s*---\n.*?\n---[ \t]*\n', dotAll: true), '');
+      RegExp(r'^﻿?\s*---[ \t]*\n.*?\n(---|\.\.\.)[ \t]*(\n|$)',
+          dotAll: true),
+      '');
   // Cut a trailing References / Related / Links / Sources section.
   s = s.replaceFirst(
       RegExp(r'\n#{1,6}[ \t]*(references|related|links|sources|see also)\b.*$',
@@ -23,11 +33,13 @@ String cleanNoteBody(String raw) {
       .where((l) {
         final t = l.trim();
         if (t.isEmpty) return true;
-        // Tag-only lines (headings "# Title" are kept: the hash is followed by
-        // a space, not word characters).
+        // Tag-only lines (headings "# Title" survive: the hash is followed by a
+        // space, not word characters).
         if (RegExp(r'^(#[A-Za-z0-9_/-]+\s*)+$').hasMatch(t)) return false;
-        // Dataview / inline metadata fields, e.g. "status:: done".
-        if (RegExp(r'^[A-Za-z][\w ]*::').hasMatch(t)) return false;
+        // Labeled metadata: "date: ...", "tags:: ...", "**Status**: done", etc.
+        // Strip emphasis markers first so "**Author**:" is still recognised.
+        final probe = t.replaceAll(RegExp(r'[*_`]'), '');
+        if (_metaLabel.hasMatch(probe)) return false;
         return true;
       })
       .join('\n');

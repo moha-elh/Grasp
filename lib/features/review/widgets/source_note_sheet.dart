@@ -63,7 +63,7 @@ class _SourceNoteSheetState extends ConsumerState<SourceNoteSheet> {
     if (_note == null) {
       return ListView(controller: scroll, children: [
         if (card.sourceExcerpt != null)
-          Text(card.sourceExcerpt!, style: Typo.body),
+          MarkdownNote(cleanNoteBody(card.sourceExcerpt!)),
         if (card.referenceUrl != null) ...[
           const SizedBox(height: T.s18),
           _link(card.referenceUrl!),
@@ -78,7 +78,7 @@ class _SourceNoteSheetState extends ConsumerState<SourceNoteSheet> {
         }
         if (snap.hasError || snap.data == null) {
           return ListView(controller: scroll, children: [
-            Text(card.sourceExcerpt ?? '(no excerpt stored)', style: Typo.body),
+            MarkdownNote(cleanNoteBody(card.sourceExcerpt ?? '')),
             const SizedBox(height: T.s12),
             Text('Could not load the full note.',
                 style: Typo.meta.copyWith(color: T.slipping)),
