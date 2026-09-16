@@ -87,6 +87,13 @@ class CardsRepository {
     return rows.count;
   }
 
+  /// Total cards for this user (any status). 0 means a fresh account, which the
+  /// onboarding uses to generate the first batch.
+  Future<int> cardCount() async {
+    final rows = await _t.select('id').count();
+    return rows.count;
+  }
+
   /// Cards due for review now - served IN FULL, never capped (FR-17).
   Future<List<GraspCard>> dueCards() async {
     final rows = await _t

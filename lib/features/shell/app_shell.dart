@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/providers.dart';
 import '../../design/tokens.dart';
 import '../../design/typography.dart';
 import '../explore/explore_screen.dart';
+import '../generation/generation_controller.dart';
 import '../retention/retention_screen.dart';
 import '../session/session_screen.dart';
 import '../vetting/vetting_controller.dart';
@@ -23,9 +25,34 @@ class AppShell extends ConsumerStatefulWidget {
 class _AppShellState extends ConsumerState<AppShell> {
   int _index = 0;
   bool _sessionActive = false;
+  bool _kickstarted = false;
 
-  // Generation is manual now (the button in Settings), so it never runs by
-  // itself on app entry.
+  @override
+  void initState() {
+    super.initState();
+    // Onboarding kickstart: a brand-new account (empty deck) that just connected
+    // Dropbox gets its first batch generated automatically, then lands on the
+    // Vet tab to start the verifying habit. Never runs once any card exists, so
+    // it doesn't re-generate on later opens (generation is otherwise manual).
+    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeKickstart());
+  }
+
+  Future<void> _maybeKickstart() async {
+    if (_kickstarted) return;
+    _kickstarted = true;
+    try {
+      if (await ref.read(cardsRepoProvider).cardCount() > 0) return;
+      await ref.read(generationControllerProvider.notifier).runPass();
+      if (!mounted) return;
+      final gen = ref.read(generationControllerProvider);
+      if (gen.phase == GenPhase.done && gen.added > 0) {
+        ref.invalidate(vettingControllerProvider);
+        setState(() => _index = 1); // Vet tab
+      }
+    } catch (_) {
+      // A failed first pass is harmless; the user can generate from Settings.
+    }
+  }
 
   static const _tabs = [
     _Tab('Session', Icons.school_outlined, Icons.school),

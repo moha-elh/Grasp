@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../design/tokens.dart';
 import '../../design/typography.dart';
 import '../../design/widgets/primary_button.dart';
+import '../dropbox/dropbox_controller.dart';
 import 'auth_controller.dart';
 
 /// Sign-in / create-account (deferred "last bit", §8). Email + password against
@@ -47,6 +48,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     try {
       if (_creating) {
         final res = await auth.signUp(email, pw);
+        // A new account always onboards through Dropbox connect: clear any
+        // device-level token left by a previous account so the connect screen
+        // shows and the first batch is generated for this account.
+        await ref.read(dropboxControllerProvider.notifier).disconnect();
         // With email confirmation on, there's no session yet.
         if (res.session == null && mounted) {
           setState(() => _notice =
