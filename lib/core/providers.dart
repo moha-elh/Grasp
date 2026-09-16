@@ -14,9 +14,18 @@ import 'net.dart';
 /// Shared Supabase client (initialized in main before runApp).
 final supabaseProvider = Provider<SupabaseClient>((_) => Supabase.instance.client);
 
+/// Fires on every auth change (sign-in, sign-out, token refresh) so anything
+/// derived from the current user re-reads it.
+final authChangesProvider = StreamProvider<AuthState>(
+    (ref) => ref.watch(supabaseProvider).auth.onAuthStateChange);
+
 /// Current authenticated user id, or null. Single-user, RLS-scoped (§8).
-final userIdProvider = Provider<String?>(
-    (ref) => ref.watch(supabaseProvider).auth.currentUser?.id);
+/// Reactive: a cached id would keep pointing at the previous account after a
+/// sign-out/switch and every insert would then violate RLS (error 42501).
+final userIdProvider = Provider<String?>((ref) {
+  ref.watch(authChangesProvider);
+  return ref.watch(supabaseProvider).auth.currentUser?.id;
+});
 
 // --- Services ---
 final fsrsProvider = Provider((_) => FsrsService());

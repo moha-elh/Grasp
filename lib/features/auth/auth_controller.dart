@@ -3,14 +3,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/providers.dart';
 
-/// Emits on every auth change (sign-in, sign-out, token refresh) so the gate
-/// re-evaluates. supabase_flutter persists the session across launches.
-final authStateChangesProvider = StreamProvider<AuthState>(
-    (ref) => ref.watch(supabaseProvider).auth.onAuthStateChange);
-
-/// The current session, or null when signed out. Rebuilds via the stream.
+/// The current session, or null when signed out. Rebuilds via the auth stream
+/// (authChangesProvider), which also persists across launches.
 final currentSessionProvider = Provider<Session?>((ref) {
-  ref.watch(authStateChangesProvider);
+  ref.watch(authChangesProvider);
   return ref.watch(supabaseProvider).auth.currentSession;
 });
 
