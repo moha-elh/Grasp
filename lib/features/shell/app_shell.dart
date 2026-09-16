@@ -7,6 +7,7 @@ import '../../design/typography.dart';
 import '../explore/explore_screen.dart';
 import '../generation/generation_controller.dart';
 import '../retention/retention_screen.dart';
+import '../review/session_controller.dart';
 import '../session/session_screen.dart';
 import '../vetting/vetting_controller.dart';
 import '../vetting/vetting_screen.dart';
@@ -62,8 +63,11 @@ class _AppShellState extends ConsumerState<AppShell> {
   ];
 
   void _select(int i) {
-    // Reload the vetting batch each time the tab is opened so freshly generated
-    // pending cards show up (the provider is otherwise kept alive by the shell).
+    // Reload on tab open so newly approved/generated cards show up: the shell
+    // keeps these providers alive, so they don't refetch on their own. Safe
+    // because the tab bar is hidden during an active review, so this never
+    // interrupts a session in progress.
+    if (i == 0) ref.invalidate(sessionControllerProvider);
     if (i == 1) ref.invalidate(vettingControllerProvider);
     setState(() => _index = i);
   }
