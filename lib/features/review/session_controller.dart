@@ -110,7 +110,9 @@ class SessionController extends StateNotifier<SessionState> {
       final fresh = remaining > 0
           ? await _cards.newCards(limit: remaining)
           : <GraspCard>[];
-      if (fresh.isNotEmpty) await _daily.recordIntroduced(fresh.length);
+      // Introduction is counted when a new card is graded, not when drawn, so
+      // reopening/reloading redraws the same unreviewed cards instead of
+      // burning the allotment and emptying the queue.
       if (mounted) state = SessionState(queue: [...due, ...fresh]);
     } catch (e) {
       if (mounted) state = SessionState(queue: const [], error: e.toString());
@@ -123,6 +125,9 @@ class SessionController extends StateNotifier<SessionState> {
   void grade(fsrs.Rating rating) {
     if (state.isComplete) return;
     final card = state.current!;
+    // Count a NEW card against today's allotment only once it is actually
+    // graded (reps == 0 means it had not been reviewed before).
+    if (card.reps == 0) _daily?.recordIntroduced(1);
     // Advance immediately so the card-to-card flow stays snappy; the write
     // runs in the background and surfaces (not blocks) on failure.
     if (_fsrs != null && _reviews != null) {
