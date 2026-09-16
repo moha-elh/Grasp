@@ -10,11 +10,6 @@ import 'features/dropbox/dropbox_connect_screen.dart';
 import 'features/dropbox/dropbox_controller.dart';
 import 'features/shell/app_shell.dart';
 
-/// Debug-only bypasses so the shell is reachable on web/dev where a real
-/// account / the mobile OAuth scheme can't complete.
-final _authBypassProvider = StateProvider<bool>((_) => false);
-final _devBypassProvider = StateProvider<bool>((_) => false);
-
 /// Root widget. Gates on sign-in, then Dropbox connection (screen 01), then the
 /// shell.
 class GraspApp extends StatelessWidget {
@@ -36,24 +31,17 @@ class _Gate extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 1. Auth gate (unless bypassed in debug).
-    if (!ref.watch(_authBypassProvider)) {
-      if (ref.watch(currentSessionProvider) == null) {
-        return SignInScreen(
-          onSkip: () => ref.read(_authBypassProvider.notifier).state = true,
-        );
-      }
+    // 1. Auth gate.
+    if (ref.watch(currentSessionProvider) == null) {
+      return const SignInScreen();
     }
 
     // 2. Dropbox gate.
-    if (ref.watch(_devBypassProvider)) return const AppShell();
     final status = ref.watch(dropboxControllerProvider);
     if (status.phase == DropboxPhase.checking) return const _Splash();
     if (status.isConnected) return const AppShell();
 
-    return DropboxConnectScreen(
-      onSkip: () => ref.read(_devBypassProvider.notifier).state = true,
-    );
+    return const DropboxConnectScreen();
   }
 }
 

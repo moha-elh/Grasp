@@ -12,19 +12,21 @@ final _metaLabel = RegExp(
     r'publish|up|prev|previous|next|category|categories|type)\b\s*:{1,2}',
     caseSensitive: false);
 
+String _stripFrontmatter(String raw) => raw.replaceAll('\r\n', '\n').replaceFirst(
+    RegExp(r'^﻿?\s*---[ \t]*\n.*?\n(---|\.\.\.)[ \t]*(\n|$)', dotAll: true),
+    '');
+
 String cleanNoteBody(String raw) {
-  var s = raw.replaceAll('\r\n', '\n');
-  // Leading YAML frontmatter block. Lenient: a BOM or blank lines may precede
-  // the opening fence, and the block may end with `---` or `...`.
-  s = s.replaceFirst(
-      RegExp(r'^﻿?\s*---[ \t]*\n.*?\n(---|\.\.\.)[ \t]*(\n|$)',
-          dotAll: true),
+  var s = _stripFrontmatter(raw);
+  // Remove a References / Related / Links / Sources SECTION: the heading plus
+  // its following non-heading lines, stopping at the next heading (never to the
+  // end of the note, which would wipe everything after an early such heading).
+  s = s.replaceAll(
+      RegExp(
+          r'^#{1,6}[ \t]*(references|related|links|sources|see also)\b.*(?:\n(?!#).*)*',
+          multiLine: true,
+          caseSensitive: false),
       '');
-  // Cut a trailing References / Related / Links / Sources section.
-  s = s.replaceFirst(
-      RegExp(r'\n#{1,6}[ \t]*(references|related|links|sources|see also)\b.*$',
-          dotAll: true, caseSensitive: false),
-      '\n');
   // Unwrap [[link|alias]] -> alias, [[link]] -> link.
   s = s.replaceAllMapped(RegExp(r'\[\[([^\]|]+)\|([^\]]+)\]\]'), (m) => m[2]!);
   s = s.replaceAllMapped(RegExp(r'\[\[([^\]]+)\]\]'), (m) => m[1]!);
@@ -43,9 +45,10 @@ String cleanNoteBody(String raw) {
         return true;
       })
       .join('\n');
-  // Collapse runs of blank lines.
-  s = s.replaceAll(RegExp(r'\n{3,}'), '\n\n');
-  return s.trim();
+  s = s.replaceAll(RegExp(r'\n{3,}'), '\n\n').trim();
+  // Safety net: never return an empty note when the source had real content.
+  if (s.length < 4 && raw.trim().length >= 12) return _stripFrontmatter(raw).trim();
+  return s;
 }
 
 /// Split [note] around the first occurrence of [quote], tolerant of whitespace

@@ -87,7 +87,13 @@ class _SourceNoteSheetState extends ConsumerState<SourceNoteSheet> {
         final body = cleanNoteBody(snap.data!);
         return ListView(
           controller: scroll,
-          children: [MarkdownNote(body, highlight: card.sourceExcerpt)],
+          children: [
+            if (body.trim().isEmpty)
+              Text('This note has no readable content.',
+                  style: Typo.body.copyWith(color: T.inkMeta))
+            else
+              MarkdownNote(body, highlight: card.sourceExcerpt),
+          ],
         );
       },
     );

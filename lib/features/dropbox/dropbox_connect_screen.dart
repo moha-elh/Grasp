@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -9,12 +8,9 @@ import 'dropbox_controller.dart';
 import 'widgets/dropbox_logo.dart';
 
 /// Screen 01 · Dropbox connect (FR-1 to FR-3). A clean, full-bleed accent
-/// onboarding: the Dropbox logo, one line of why, one button. [onSkip] is a
-/// debug-only bypass so the shell can be reached on web/dev where the mobile
-/// OAuth scheme can't complete.
+/// onboarding: the Dropbox logo, one line of why, one button.
 class DropboxConnectScreen extends ConsumerWidget {
-  final VoidCallback? onSkip;
-  const DropboxConnectScreen({super.key, this.onSkip});
+  const DropboxConnectScreen({super.key});
 
   static const _onAccent = Color(0xFFFFFFFF);
   static const _onAccentDim = Color(0xCCFFFFFF);
@@ -73,12 +69,6 @@ class DropboxConnectScreen extends ConsumerWidget {
                 textAlign: TextAlign.center,
                 style: Typo.meta.copyWith(color: _onAccentDim),
               ),
-              if (kDebugMode && onSkip != null)
-                TextButton(
-                  onPressed: onSkip,
-                  child: Text('Skip for now (debug)',
-                      style: TextStyle(color: _onAccentDim, fontSize: 12)),
-                ),
             ],
           ),
         ),

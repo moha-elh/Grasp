@@ -39,7 +39,8 @@ class ExploreScreen extends ConsumerWidget {
               child: feed.loading
                   ? _loading()
                   : feed.error != null
-                      ? _errorState(feed.error!)
+                      ? _errorState(feed.error!,
+                          () => ref.invalidate(exploreFeedProvider))
                       : items.isEmpty
                           ? _empty()
                           : ListView(
@@ -154,9 +155,34 @@ class ExploreScreen extends ConsumerWidget {
         child: CircularProgressIndicator(color: T.accent),
       );
 
-  Widget _errorState(String message) => EmptyState(
-        icon: Icons.cloud_off_outlined,
-        title: 'Could not load Explore',
-        message: message,
+  Widget _errorState(String message, VoidCallback onRetry) => Center(
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              EmptyState(
+                icon: Icons.cloud_off_outlined,
+                title: 'Could not load Explore',
+                message: message,
+              ),
+              const SizedBox(height: T.s24),
+              SizedBox(
+                height: T.hitButton,
+                child: OutlinedButton.icon(
+                  onPressed: onRetry,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: T.accent,
+                    side: const BorderSide(color: T.accent),
+                    shape: const StadiumBorder(),
+                    padding: const EdgeInsets.symmetric(horizontal: T.s24),
+                  ),
+                  icon: const Icon(Icons.refresh, size: 18),
+                  label: Text('Try again',
+                      style: Typo.label.copyWith(color: T.accent)),
+                ),
+              ),
+            ],
+          ),
+        ),
       );
 }

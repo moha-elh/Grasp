@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -9,11 +8,9 @@ import '../../design/widgets/primary_button.dart';
 import 'auth_controller.dart';
 
 /// Sign-in / create-account (deferred "last bit", §8). Email + password against
-/// Supabase. [onSkip] is a debug bypass so the shell stays reachable on web
-/// before an account exists.
+/// Supabase.
 class SignInScreen extends ConsumerStatefulWidget {
-  final VoidCallback? onSkip;
-  const SignInScreen({super.key, this.onSkip});
+  const SignInScreen({super.key});
 
   @override
   ConsumerState<SignInScreen> createState() => _SignInScreenState();
@@ -127,15 +124,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                 ),
               ),
               const Spacer(),
-              if (kDebugMode && widget.onSkip != null)
-                Center(
-                  child: TextButton(
-                    onPressed: widget.onSkip,
-                    child: Text('Skip for now (debug)',
-                        style: Typo.meta
-                            .copyWith(decoration: TextDecoration.underline)),
-                  ),
-                ),
             ],
           ),
         ),
