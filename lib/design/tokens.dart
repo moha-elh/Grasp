@@ -74,7 +74,7 @@ class T {
   static const mChart = Duration(milliseconds: 600); // ring/curve entry, once
   static const swipeMaxTiltDeg = 12.0;
 
-  /// Retention health color from FSRS retrievability (0..1). §07 Data to UI.
+  /// Retention health color from recall strength (0..1). §07 Data to UI.
   static Color health(double retrievability) {
     if (retrievability >= 0.80) return solid;
     if (retrievability >= 0.50) return softening;

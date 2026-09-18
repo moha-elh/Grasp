@@ -25,7 +25,8 @@ class ConceptDetailScreen extends ConsumerWidget {
     final f = ref.read(fsrsProvider);
     final mean = concept.meanRet(f);
     final weakest = [...concept.cards]
-      ..sort((a, b) => f.retrievability(a).compareTo(f.retrievability(b)));
+      ..sort((a, b) =>
+          f.recallStrength(a).compareTo(f.recallStrength(b)));
 
     return Scaffold(
       backgroundColor: T.ground,
@@ -148,7 +149,7 @@ class ConceptDetailScreen extends ConsumerWidget {
     ]);
   }
 
-  /// FR-29: times-seen is a detail, paired with retrievability - and a reading.
+  /// FR-29: times-seen is a detail, paired with recall strength - and a reading.
   Widget _seenLine(double mean) {
     final tooFat = concept.timesSeen >= 8 && mean < 0.6;
     return Container(
@@ -160,7 +161,7 @@ class ConceptDetailScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('seen ${concept.timesSeen}× · retrievability ${pct(mean)}',
+          Text('seen ${concept.timesSeen}× · recall strength ${pct(mean)}',
               style: Typo.body.copyWith(color: T.ink)),
           if (tooFat) ...[
             const SizedBox(height: T.s8),
@@ -173,7 +174,7 @@ class ConceptDetailScreen extends ConsumerWidget {
   }
 
   Widget _weakCard(GraspCard c, FsrsService f) {
-    final r = f.retrievability(c);
+    final r = f.recallStrength(c);
     return Container(
       margin: const EdgeInsets.only(bottom: T.s12),
       padding: const EdgeInsets.all(T.s18),

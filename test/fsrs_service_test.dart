@@ -19,6 +19,31 @@ GraspCard _card(FsrsService s) {
   );
 }
 
+GraspCard _studied(DateTime lastReview, double stability) {
+  final now = DateTime.now().toUtc();
+  return GraspCard(
+    id: 's1',
+    userId: 'u1',
+    front: 'q',
+    back: 'a',
+    cardType: CardType.anchor,
+    source: CardSource.notes,
+    status: CardStatus.approved,
+    reps: 5,
+    fsrs: {
+      'cardId': now.microsecondsSinceEpoch,
+      'state': 2,
+      'step': null,
+      'stability': stability,
+      'difficulty': 5.0,
+      'due': lastReview.add(Duration(days: stability.round())).toIso8601String(),
+      'lastReview': lastReview.toIso8601String(),
+    },
+    createdAt: now,
+    updatedAt: now,
+  );
+}
+
 void main() {
   final s = FsrsService();
 
@@ -44,5 +69,21 @@ void main() {
     }
     expect(p[fsrs.Rating.again]!, lessThan(p[fsrs.Rating.good]!));
     expect(p[fsrs.Rating.good]!, lessThanOrEqualTo(p[fsrs.Rating.easy]!));
+  });
+
+  test('recall strength tempers fresh retrievability with maturity', () {
+    final now = DateTime.utc(2026, 1, 10);
+
+    // Just graded: retrievability is ~1.0, but one review is not a memory yet.
+    final fresh = _studied(now, 3);
+    expect(s.retrievability(fresh, at: now), closeTo(1.0, 0.001));
+    expect(s.recallStrength(fresh, at: now), lessThan(0.6),
+        reason: 'a just-seen card must not read as fully retained');
+
+    // Retained for weeks: high stability outranks the fresh card even a week on.
+    final mature = _studied(now.subtract(const Duration(days: 7)), 60);
+    expect(s.recallStrength(mature, at: now),
+        greaterThan(s.recallStrength(fresh, at: now)));
+    expect(s.recallStrength(mature, at: now), greaterThan(0.8));
   });
 }

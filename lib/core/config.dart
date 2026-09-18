@@ -51,6 +51,12 @@ class Config {
   /// cards exist, so the user is never flooded (FR-7).
   static const pendingQueueTarget = 30;
 
+  /// FSRS stability (days) at which a memory counts as "half mature". Recall
+  /// strength = retrievability × maturity, and maturity saturates with
+  /// stability on this scale. Bigger = stricter (more days of retention before
+  /// a card reads as consolidated).
+  static const maturityScaleDays = 7.0;
+
   static String _req(String key) {
     final v = dotenv.maybeGet(key);
     if (v == null || v.isEmpty) {

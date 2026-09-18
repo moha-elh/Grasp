@@ -9,8 +9,8 @@ import '../../data/services/fsrs_service.dart';
 class ConceptStats {
   final String concept; // note name
   final String? notePath;
-  final double nameRet; // mean retrievability of anchor cards (0..1)
-  final double explainRet; // mean retrievability of mechanism cards
+  final double nameRet; // mean recall strength of anchor cards (0..1)
+  final double explainRet; // mean recall strength of mechanism cards
   final int timesSeen; // sum of reps across the concept (FR-29, a detail)
   final List<GraspCard> cards;
 
@@ -26,17 +26,17 @@ class ConceptStats {
   /// The FR-28 name/mechanism gap: knows the name, not the mechanism.
   double get gap => nameRet - explainRet;
 
-  /// Average recall across cards actually reviewed at least once. Brand-new,
-  /// never-graded cards report a perfect "retrievability" they never earned,
-  /// so including them makes the numbers drift every time a new note lands.
+  /// Average recall strength across cards actually reviewed at least once.
+  /// Brand-new, never-graded cards have neither stability nor earned recall, so
+  /// including them would drag the numbers down every time a new note lands.
   double meanRet(FsrsService f) {
     final studied = cards.where((c) => c.reps > 0).toList();
-    return studied.isEmpty ? 0 : _mean(studied.map((c) => f.retrievability(c)));
+    return studied.isEmpty ? 0 : _mean(studied.map((c) => f.recallStrength(c)));
   }
 
   double retOfType(CardType t, FsrsService f) {
     final subset = cards.where((c) => c.cardType == t && c.reps > 0);
-    return subset.isEmpty ? 0 : _mean(subset.map((c) => f.retrievability(c)));
+    return subset.isEmpty ? 0 : _mean(subset.map((c) => f.recallStrength(c)));
   }
 }
 
@@ -59,11 +59,11 @@ double _mean(Iterable<double> xs) {
 }
 
 double _typeMean(Iterable<GraspCard> cards, CardType t, FsrsService f) =>
-    _mean(cards.where((c) => c.cardType == t).map((c) => f.retrievability(c)));
+    _mean(cards.where((c) => c.cardType == t).map((c) => f.recallStrength(c)));
 
 /// Cards that have been reviewed at least once. Only these express real recall;
-/// brand-new approved cards report a default "retrievability" that would make
-/// the deck look stronger (or shift it) whenever a fresh batch is vetted.
+/// brand-new approved cards have no earned retrievability or stability, and
+/// including them would make the deck look emptier whenever a batch is vetted.
 Iterable<GraspCard> studied(Iterable<GraspCard> cards) =>
     cards.where((c) => c.reps > 0);
 

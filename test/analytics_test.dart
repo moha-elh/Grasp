@@ -113,7 +113,7 @@ void main() {
 
     final s = computeDeckStats(cards, f);
 
-    final expected = f.retrievability(cards.first);
+    final expected = f.recallStrength(cards.first);
     expect(s.nameRet, closeTo(expected, 0.0001),
         reason: 'only the reviewed card should drive retention');
 

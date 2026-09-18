@@ -1,5 +1,8 @@
+import 'dart:math' as math;
+
 import 'package:fsrs/fsrs.dart' as fsrs;
 
+import '../../core/config.dart';
 import '../models/card.dart';
 import '../models/review_log.dart';
 
@@ -76,6 +79,25 @@ class FsrsService {
   /// Current recall probability (FR-28 recall strength). 0..1.
   double retrievability(GraspCard card, {DateTime? at}) =>
       _scheduler.getCardRetrievability(card.fsrsCard, currentDateTime: (at ?? DateTime.now()).toUtc());
+
+  /// FSRS stability in days: how long until recall decays. 0 for an unseen card.
+  double stability(GraspCard card) => card.fsrsCard.stability ?? 0;
+
+  /// Memory maturity (0..1): how consolidated the memory is, saturating with
+  /// stability. A single good grade (~a few days of stability) is only part-way
+  /// there; surviving weeks approaches 1.
+  double maturity(GraspCard card) {
+    final s = stability(card);
+    return s <= 0 ? 0 : 1 - math.exp(-s / Config.maturityScaleDays);
+  }
+
+  /// Recall strength (FR-28), 0..1: predicted recall now (retrievability),
+  /// tempered by how mature the memory is. This is what the retention views
+  /// show. Bare retrievability resets to ~1.0 the moment a card is graded, so
+  /// it reads 100% right after every session; multiplying by maturity keeps a
+  /// just-seen card honest while a card retained for weeks stays high.
+  double recallStrength(GraspCard card, {DateTime? at}) =>
+      retrievability(card, at: at) * maturity(card);
 
   int _elapsedDays(fsrs.ReviewLog rl) {
     // ReviewLog stores the review datetime; elapsed since prior review isn't
