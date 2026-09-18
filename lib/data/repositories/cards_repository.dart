@@ -51,6 +51,7 @@ class CardsRepository {
     required String back,
     required CardType type,
     String? referenceUrl,
+    String? sourceExcerpt,
     required FsrsService fsrs,
   }) async {
     final now = DateTime.now().toUtc();
@@ -61,6 +62,7 @@ class CardsRepository {
       'card_type': type.name,
       'source': CardSource.explore.name,
       'reference_url': referenceUrl,
+      'source_excerpt': sourceExcerpt,
       'status': 'approved',
       'fsrs': fsrs.newCard(),
       'created_at': now.toIso8601String(),

@@ -67,10 +67,29 @@ class GraspCard {
   fsrs_pkg.Card get fsrsCard => fsrs_pkg.Card.fromMap(fsrs);
 
   /// Concept = the origin note's name (analytics rolls up by note, §5.8).
-  /// Derived from the note filename; empty for source-less Explore cards.
+  /// Derived from the note filename. Explore cards have no vault note, so they
+  /// all roll up under a single "Internet" concept; the individual source is
+  /// kept per card (see [sourceName]) and listed by the source sheet.
   String get conceptName {
     final base = (sourcePath ?? '').split('/').last;
-    return base.replaceAll(RegExp(r'\.md$'), '');
+    final name = base.replaceAll(RegExp(r'\.md$'), '');
+    if (name.isNotEmpty) return name;
+    return source == CardSource.explore ? 'Internet' : 'Untitled note';
+  }
+
+  /// The cited source's human name, so an Internet card's resource reads
+  /// "<name>: <link>". Web cards store "<domain> · <title>" as their citation,
+  /// so the article title is the concept name; a link with no title falls back
+  /// to its domain.
+  String get sourceName {
+    final excerpt = sourceExcerpt ?? '';
+    final sep = excerpt.indexOf(' · ');
+    if (sep >= 0 && sep + 3 < excerpt.length) {
+      return excerpt.substring(sep + 3);
+    }
+    final host = (Uri.tryParse(referenceUrl ?? '')?.host ?? '')
+        .replaceAll(RegExp(r'^www\.'), '');
+    return host.isNotEmpty ? host : 'Internet';
   }
 
   factory GraspCard.fromJson(Map<String, dynamic> j) => GraspCard(

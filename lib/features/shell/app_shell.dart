@@ -6,6 +6,7 @@ import '../../design/tokens.dart';
 import '../../design/typography.dart';
 import '../explore/explore_screen.dart';
 import '../generation/generation_controller.dart';
+import '../retention/analytics.dart';
 import '../retention/retention_screen.dart';
 import '../review/session_controller.dart';
 import '../session/session_screen.dart';
@@ -67,8 +68,15 @@ class _AppShellState extends ConsumerState<AppShell> {
     // keeps these providers alive, so they don't refetch on their own. Safe
     // because the tab bar is hidden during an active review, so this never
     // interrupts a session in progress.
-    if (i == 0) ref.invalidate(sessionControllerProvider);
+    if (i == 0) {
+      ref.invalidate(sessionControllerProvider);
+      ref.invalidate(pendingCardsProvider);
+    }
     if (i == 1) ref.invalidate(vettingControllerProvider);
+    if (i == 2) {
+      ref.invalidate(deckCardsProvider);
+      ref.invalidate(reviewTrendProvider);
+    }
     setState(() => _index = i);
   }
 
@@ -85,7 +93,12 @@ class _AppShellState extends ConsumerState<AppShell> {
 
     return Scaffold(
       body: IndexedStack(index: _index, children: screens),
-      bottomNavigationBar: _sessionActive ? null : _buildTabBar(),
+      // Hide the bar only while a review is running ON the Session tab, so the
+      // loop isn't interrupted. The offstage Session screen reports "active"
+      // even while you're elsewhere (e.g. after changing the card throttle
+      // redraws the queue), which must never trap you on another tab.
+      bottomNavigationBar:
+          (_sessionActive && _index == 0) ? null : _buildTabBar(),
     );
   }
 

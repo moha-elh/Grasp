@@ -146,6 +146,10 @@ class SessionController extends StateNotifier<SessionState> {
   void flag() {
     if (state.isComplete) return;
     final card = state.current!;
+    // A brand-new card drawn into today's dose still consumes its allotment
+    // slot: it leaves the queue for good (remake pile), so the next session
+    // open should show "done for today" instead of refilling one leftover card.
+    if (card.reps == 0) _daily?.recordIntroduced(1);
     if (_cards != null) {
       _persist(() async {
         await _cards.setQuality(card.id, Quality.disliked);

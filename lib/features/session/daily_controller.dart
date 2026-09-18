@@ -3,9 +3,13 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/providers.dart';
+
 /// Per-day session progress: the streak of days the daily dose was finished,
 /// and how many NEW cards have been introduced today (so reopening the app the
-/// same day does not draw a fresh batch). Persisted to shared_preferences.
+/// same day does not draw a fresh batch). Persisted to shared_preferences,
+/// namespaced per user so a new account never inherits the previous account's
+/// streak or intake.
 class DailyState {
   final int streak;
   final String? lastDoneDate; // yyyy-mm-dd of the last finished dose
@@ -45,8 +49,13 @@ class DailyState {
       );
 }
 
+/// Rebuilt whenever the signed-in account changes, so each account gets its
+/// own streak / new-card intake instead of reusing the device's stale values.
 final dailyProgressProvider =
-    StateNotifierProvider<DailyController, DailyState>((_) => DailyController());
+    StateNotifierProvider<DailyController, DailyState>((ref) {
+  final userId = ref.watch(userIdProvider);
+  return DailyController(userId: userId);
+});
 
 class DailyController extends StateNotifier<DailyState> {
   static const _kStreak = 'streak_count';
@@ -54,15 +63,22 @@ class DailyController extends StateNotifier<DailyState> {
   static const _kIntroDate = 'new_intro_date';
   static const _kIntroCount = 'new_intro_count';
 
+  final String? _userId;
   final _ready = Completer<void>();
 
   /// Completes once persisted progress is loaded, so the session can size the
   /// day's dose without racing the async read.
   Future<void> get ready => _ready.future;
 
-  DailyController() : super(const DailyState()) {
+  DailyController({String? userId})
+      : _userId = userId,
+        super(const DailyState()) {
     _load();
   }
+
+  /// Prefers a per-account namespace; falls back to plain keys when there is no
+  /// signed-in user (e.g. widget tests), preserving the old single-user keys.
+  String _key(String name) => _userId == null ? name : '$_userId.$name';
 
   int remainingNewToday(int perDay) => state.remainingNew(perDay, today);
 
@@ -78,10 +94,10 @@ class DailyController extends StateNotifier<DailyState> {
   Future<void> _load() async {
     final p = await SharedPreferences.getInstance();
     state = DailyState(
-      streak: p.getInt(_kStreak) ?? 0,
-      lastDoneDate: p.getString(_kLastDone),
-      introDate: p.getString(_kIntroDate),
-      introducedToday: p.getInt(_kIntroCount) ?? 0,
+      streak: p.getInt(_key(_kStreak)) ?? 0,
+      lastDoneDate: p.getString(_key(_kLastDone)),
+      introDate: p.getString(_key(_kIntroDate)),
+      introducedToday: p.getInt(_key(_kIntroCount)) ?? 0,
     );
     if (!_ready.isCompleted) _ready.complete();
   }
@@ -93,8 +109,8 @@ class DailyController extends StateNotifier<DailyState> {
     final base = state.introDate == t ? state.introducedToday : 0;
     state = state.copyWith(introDate: t, introducedToday: base + n);
     final p = await SharedPreferences.getInstance();
-    await p.setString(_kIntroDate, t);
-    await p.setInt(_kIntroCount, state.introducedToday);
+    await p.setString(_key(_kIntroDate), t);
+    await p.setInt(_key(_kIntroCount), state.introducedToday);
   }
 
   /// Mark today's dose finished and advance the streak. Idempotent per day.
@@ -104,7 +120,7 @@ class DailyController extends StateNotifier<DailyState> {
     final next = state.lastDoneDate == yesterday ? state.streak + 1 : 1;
     state = state.copyWith(streak: next, lastDoneDate: t);
     final p = await SharedPreferences.getInstance();
-    await p.setInt(_kStreak, next);
-    await p.setString(_kLastDone, t);
+    await p.setInt(_key(_kStreak), next);
+    await p.setString(_key(_kLastDone), t);
   }
 }

@@ -1,4 +1,5 @@
 import '../../features/explore/explore_feed.dart';
+import '../models/card.dart';
 import '../repositories/cards_repository.dart';
 import 'llm_service.dart';
 import 'search_service.dart';
@@ -15,9 +16,12 @@ class ExploreService {
 
   Future<List<ExploreItem>> candidates({int adjacent = 2, int web = 2}) async {
     final deck = await _cards.approvedDeck();
+    // Seed from the user's own notes only - Explore cards all share the
+    // synthetic "Internet" concept, which is not a real topic to search.
     final concepts = <String>{
       for (final c in deck)
-        if (c.conceptName.isNotEmpty) c.conceptName,
+        if (c.source == CardSource.notes && c.conceptName.isNotEmpty)
+          c.conceptName,
     }.toList()
       ..shuffle();
     if (concepts.isEmpty) return const [];

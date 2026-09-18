@@ -47,6 +47,8 @@ class SettingsScreen extends ConsumerWidget {
             _mix(),
             const SizedBox(height: T.s32),
             _section('CONTENT'),
+            _generateSize(ref),
+            const SizedBox(height: T.s12),
             _generate(ref),
             const SizedBox(height: T.s32),
             _section('ACCOUNT'),
@@ -205,6 +207,36 @@ class SettingsScreen extends ConsumerWidget {
           _MixRow('Application', 'when to use it', 0.33),
         ],
       ));
+
+  /// How many cards a single "generate" pass should add to the Vet queue.
+  Widget _generateSize(WidgetRef ref) {
+    final n = ref.watch(cardsPerGenerationProvider);
+    return _panel(Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Cards per pass', style: Typo.body.copyWith(color: T.ink)),
+            Text('$n', style: Typo.display(24)),
+          ],
+        ),
+        Slider(
+          value: n.toDouble(),
+          min: 5,
+          max: 45,
+          divisions: 40,
+          activeColor: T.accent,
+          label: '$n',
+          onChanged: (v) =>
+              ref.read(cardsPerGenerationProvider.notifier).set(v.round()),
+        ),
+        Text('How many new cards one generation run should build for you to '
+            'vet. The daily review cap above still throttles what actually '
+            'enters your sessions.', style: Typo.bodySmall),
+      ],
+    ));
+  }
 
   /// Manual trigger for a background generation pass (FR-7). Normally runs on
   /// app entry; this is here to kick it and watch the result on device.

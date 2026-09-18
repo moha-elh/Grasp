@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers.dart';
+import '../settings/settings_controller.dart';
 import '../../data/services/generation_service.dart';
 
 final generationServiceProvider = Provider((ref) => GenerationService(
@@ -45,7 +46,11 @@ class GenerationController extends StateNotifier<GenStatus> {
 
     state = const GenStatus(GenPhase.running);
     try {
-      final added = await _ref.read(generationServiceProvider).runPass(userId: userId);
+      // Size the pass to the "Cards per pass" setting, so generating 15 by
+      // default (or whatever the user picked) fills the Vet queue on purpose.
+      final added = await _ref
+          .read(generationServiceProvider)
+          .runPass(userId: userId, cardsTotal: _ref.read(cardsPerGenerationProvider));
       state = GenStatus(GenPhase.done, added: added);
     } catch (e) {
       state = GenStatus(GenPhase.error, message: e.toString());

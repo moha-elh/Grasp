@@ -26,11 +26,13 @@ class GenerationService {
     'application': 0.33,
   };
 
-  /// Run one bounded pass. Returns how many cards were added.
+  /// Run one bounded pass. Returns how many cards were added. [cardsTotal]
+  /// is the user's target for the whole pass (the "Cards per pass" setting),
+  /// spread across [notesPerPass] notes up to the pending-queue target.
   Future<int> runPass({
     required String userId,
-    int notesPerPass = 2,
-    int maxCardsPerNote = 6,
+    int cardsTotal = Config.defaultCardsPerGeneration,
+    int notesPerPass = Config.generationNotesPerPass,
   }) async {
     if (await _cards.pendingCount() >= Config.pendingQueueTarget) return 0;
 
@@ -39,8 +41,11 @@ class GenerationService {
     final byPath = {for (final n in notes) n.path: n};
     final order = await _coverage.nextToGenerate(byPath.keys.toList());
 
+    final maxPerNote = (cardsTotal / notesPerPass).ceil();
+    var budget = cardsTotal;
     var added = 0;
     for (final path in order.take(notesPerPass)) {
+      if (budget <= 0) break;
       if (await _cards.pendingCount() >= Config.pendingQueueTarget) break;
       final note = byPath[path];
       if (note == null) continue;
@@ -49,7 +54,7 @@ class GenerationService {
         notePath: path,
         noteContent: note.content,
         targetMix: _targetMix,
-        maxCards: maxCardsPerNote,
+        maxCards: budget < maxPerNote ? budget : maxPerNote,
       );
       if (generated.isEmpty) {
         await _coverage.markGenerated(userId, path, 0);
@@ -64,6 +69,7 @@ class GenerationService {
       );
       await _coverage.markGenerated(userId, path, generated.length);
       added += generated.length;
+      budget -= generated.length;
     }
     return added;
   }

@@ -26,11 +26,16 @@ class ConceptStats {
   /// The FR-28 name/mechanism gap: knows the name, not the mechanism.
   double get gap => nameRet - explainRet;
 
-  double meanRet(FsrsService f) =>
-      cards.isEmpty ? 0 : _mean(cards.map((c) => f.retrievability(c)));
+  /// Average recall across cards actually reviewed at least once. Brand-new,
+  /// never-graded cards report a perfect "retrievability" they never earned,
+  /// so including them makes the numbers drift every time a new note lands.
+  double meanRet(FsrsService f) {
+    final studied = cards.where((c) => c.reps > 0).toList();
+    return studied.isEmpty ? 0 : _mean(studied.map((c) => f.retrievability(c)));
+  }
 
   double retOfType(CardType t, FsrsService f) {
-    final subset = cards.where((c) => c.cardType == t);
+    final subset = cards.where((c) => c.cardType == t && c.reps > 0);
     return subset.isEmpty ? 0 : _mean(subset.map((c) => f.retrievability(c)));
   }
 }
@@ -53,8 +58,14 @@ double _mean(Iterable<double> xs) {
   return n == 0 ? 0 : sum / n;
 }
 
-double _typeMean(List<GraspCard> cards, CardType t, FsrsService f) =>
+double _typeMean(Iterable<GraspCard> cards, CardType t, FsrsService f) =>
     _mean(cards.where((c) => c.cardType == t).map((c) => f.retrievability(c)));
+
+/// Cards that have been reviewed at least once. Only these express real recall;
+/// brand-new approved cards report a default "retrievability" that would make
+/// the deck look stronger (or shift it) whenever a fresh batch is vetted.
+Iterable<GraspCard> studied(Iterable<GraspCard> cards) =>
+    cards.where((c) => c.reps > 0);
 
 DeckStats computeDeckStats(List<GraspCard> cards, FsrsService f) {
   final byConcept = <String, List<GraspCard>>{};
@@ -63,21 +74,23 @@ DeckStats computeDeckStats(List<GraspCard> cards, FsrsService f) {
   }
 
   final concepts = byConcept.entries.map((e) {
+    final reviewed = studied(e.value);
     return ConceptStats(
       concept: e.key,
       notePath: e.value.first.sourcePath,
-      nameRet: _typeMean(e.value, CardType.anchor, f),
-      explainRet: _typeMean(e.value, CardType.mechanism, f),
+      nameRet: _typeMean(reviewed, CardType.anchor, f),
+      explainRet: _typeMean(reviewed, CardType.mechanism, f),
       timesSeen: e.value.fold(0, (s, c) => s + c.reps),
       cards: e.value,
     );
   }).toList()
     ..sort((a, b) => b.gap.compareTo(a.gap)); // widest gap first
 
+  final deck = studied(cards);
   return DeckStats(
-    _typeMean(cards, CardType.anchor, f),
-    _typeMean(cards, CardType.mechanism, f),
-    _typeMean(cards, CardType.application, f),
+    _typeMean(deck, CardType.anchor, f),
+    _typeMean(deck, CardType.mechanism, f),
+    _typeMean(deck, CardType.application, f),
     concepts,
   );
 }

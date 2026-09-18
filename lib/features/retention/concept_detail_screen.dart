@@ -69,7 +69,10 @@ class ConceptDetailScreen extends ConsumerWidget {
                     borderRadius:
                         BorderRadius.vertical(top: Radius.circular(T.rCard)),
                   ),
-                  builder: (_) => SourceNoteSheet(concept.cards.first),
+                  // Pass the whole concept so the sheet lists every resource
+                  // (theory cards) plus this concept's note.
+                  builder: (_) =>
+                      SourceNoteSheet(concept.cards.first, group: concept.cards),
                 );
               }),
           ],
@@ -113,7 +116,7 @@ class ConceptDetailScreen extends ConsumerWidget {
 
   Widget _typeBreakdown(FsrsService f) {
     Widget row(CardType t, String label) {
-      final has = concept.cards.any((c) => c.cardType == t);
+      final has = concept.cards.any((c) => c.cardType == t && c.reps > 0);
       final v = concept.retOfType(t, f);
       return Padding(
         padding: const EdgeInsets.only(bottom: T.s12),

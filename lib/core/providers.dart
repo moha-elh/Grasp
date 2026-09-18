@@ -46,3 +46,9 @@ final reviewsRepoProvider =
     Provider((ref) => ReviewsRepository(ref.watch(supabaseProvider)));
 final coverageRepoProvider =
     Provider((ref) => CoverageRepository(ref.watch(supabaseProvider)));
+
+/// Count of cards still awaiting swipe vetting, so the Session empty state can
+/// say "your first batch is ready in the Vet tab" instead of a bare "nothing to
+/// review" the moment a new account's generation pass lands.
+final pendingCardsProvider = FutureProvider.autoDispose<int>(
+    (ref) => ref.watch(cardsRepoProvider).pendingCount());

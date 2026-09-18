@@ -80,6 +80,7 @@ class ExploreController extends StateNotifier<ExploreState> {
               back: item.back,
               type: item.type,
               referenceUrl: item.url,
+              sourceExcerpt: item.citation,
               fsrs: ref.read(fsrsProvider),
             );
       } catch (_) {

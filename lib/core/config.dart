@@ -40,6 +40,13 @@ class Config {
   /// Daily NEW-card intake cap. Due reviews are NEVER capped.
   static const defaultNewCardsPerDay = 10;
 
+  /// How many cards the user wants one generation pass to produce, spread
+  /// across notes. Controllable from Settings ("Cards per pass").
+  static const defaultCardsPerGeneration = 15;
+
+  /// Notes a single pass draws from, so a pass never stuffs one note.
+  static const generationNotesPerPass = 3;
+
   /// Background generation stops filling the queue once this many `pending`
   /// cards exist, so the user is never flooded (FR-7).
   static const pendingQueueTarget = 30;

@@ -30,6 +30,24 @@ GraspCard _c(String note, CardType type, double stability, int daysAgo) {
   );
 }
 
+GraspCard _newCard(String id, {CardSource source = CardSource.notes, String? url}) {
+  final now = DateTime.now().toUtc();
+  return GraspCard(
+    id: id,
+    userId: 'u',
+    front: 'q',
+    back: 'a',
+    cardType: CardType.anchor,
+    source: source,
+    sourcePath: null,
+    referenceUrl: url,
+    status: CardStatus.approved,
+    fsrs: FsrsService().newCard(),
+    createdAt: now,
+    updatedAt: now,
+  );
+}
+
 void main() {
   test('concepts sort by widest name/mechanism gap; means stay in range', () {
     final f = FsrsService();
@@ -80,5 +98,66 @@ void main() {
     expect(t.apply[3], closeTo(0.6667, 0.001)); // application -> apply series
 
     expect(computeTrend([], now: now).isEmpty, isTrue);
+  });
+
+  test('newly reviewed cards only: a fresh batch does not move the deck mean', () {
+    final f = FsrsService();
+    // One solid reviewed card plus two brand-new, never-graded cards. If the
+    // new cards were included (retrievability ~1.0 they never earned), the mean
+    // would jump the moment another note's batch is vetted.
+    final cards = [
+      _c('Studied', CardType.anchor, 60, 2),
+      _newCard('fresh-1'),
+      _newCard('fresh-2'),
+    ];
+
+    final s = computeDeckStats(cards, f);
+
+    final expected = f.retrievability(cards.first);
+    expect(s.nameRet, closeTo(expected, 0.0001),
+        reason: 'only the reviewed card should drive retention');
+
+    final concept = s.concepts.singleWhere((c) => c.concept == 'Studied');
+    expect(concept.nameRet, closeTo(expected, 0.0001));
+  });
+
+  test('a concept with no studied cards reports no rating instead of zero', () {
+    final f = FsrsService();
+    final cards = [_newCard('fresh-1'), _newCard('fresh-2')];
+
+    final s = computeDeckStats(cards, f);
+    final bucket = s.concepts.single;
+    expect(bucket.concept, isNotEmpty);
+    expect(bucket.retOfType(CardType.anchor, f), 0);
+    expect(bucket.meanRet(f), 0);
+  });
+
+  test('all web cards roll up into one Internet concept', () {
+    final now = DateTime.now().toUtc();
+
+    final web = GraspCard(
+      id: 'web',
+      userId: 'u',
+      front: 'q',
+      back: 'a',
+      cardType: CardType.anchor,
+      source: CardSource.explore,
+      referenceUrl: 'https://en.wikipedia.org/wiki/Spaced_repetition',
+      sourceExcerpt: 'en.wikipedia.org · Spaced repetition',
+      status: CardStatus.approved,
+      fsrs: FsrsService().newCard(),
+      createdAt: now,
+      updatedAt: now,
+    );
+    expect(web.conceptName, 'Internet');
+    expect(web.sourceName, 'Spaced repetition');
+
+    // A web card without a resolvable link still joins the Internet concept.
+    final orphan = _newCard('orphan', source: CardSource.explore);
+    expect(orphan.conceptName, 'Internet');
+
+    // A notes card with a lost vault path keeps a non-empty fallback.
+    final unnamed = _newCard('raw', source: CardSource.notes);
+    expect(unnamed.conceptName, 'Untitled note');
   });
 }

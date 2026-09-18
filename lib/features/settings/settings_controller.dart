@@ -31,3 +31,32 @@ class NewCardsPerDayNotifier extends StateNotifier<int> {
     await prefs.setInt(_key, state);
   }
 }
+
+/// How many new cards a single generation pass should produce (FR-7). A
+/// bigger pass fills the Vet queue faster; a heavier vet burden follows.
+/// Persisted to shared_preferences.
+final cardsPerGenerationProvider =
+    StateNotifierProvider<CardsPerGenerationNotifier, int>(
+        (_) => CardsPerGenerationNotifier());
+
+class CardsPerGenerationNotifier extends StateNotifier<int> {
+  static const _key = 'cards_per_generation';
+  static const _min = 5;
+  static const _max = 45;
+
+  CardsPerGenerationNotifier() : super(Config.defaultCardsPerGeneration) {
+    _load();
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getInt(_key);
+    if (saved != null) state = saved.clamp(_min, _max);
+  }
+
+  Future<void> set(int value) async {
+    state = value.clamp(_min, _max);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_key, state);
+  }
+}

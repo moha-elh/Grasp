@@ -5,6 +5,7 @@ import '../../core/providers.dart';
 import '../../data/models/card.dart';
 import '../../design/tokens.dart';
 import '../../design/typography.dart';
+import '../generation/generation_controller.dart';
 import '../remake/remake_controller.dart';
 import '../review/session_controller.dart';
 import '../review/widgets/grading_chips.dart';
@@ -12,6 +13,7 @@ import '../review/widgets/source_note_sheet.dart';
 import '../review/widgets/study_card.dart';
 import '../settings/settings_button.dart';
 import 'daily_controller.dart';
+import 'flag_hint_controller.dart';
 
 /// Default launch surface (screen 02/03, FR-16). Runs the day's dose of reviews
 /// (vetting lives in its own tab now). Tells the shell to hide the tab bar while
@@ -142,8 +144,34 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
     final today = DailyController.today;
     final doneToday = finished || daily.doneOn(today) ||
         (daily.introDate == today && daily.introducedToday > 0);
+    // Preview the +1 while the daily dose is being marked complete, but don't
+    // stack it on top once markCompleted has already persisted (lastDoneDate
+    // is today), which would show a 2-day streak on day one.
     final streak =
-        daily.shownStreak(today, DailyController.yesterday) + (finished ? 1 : 0);
+        daily.shownStreak(today, DailyController.yesterday) +
+            (finished && !daily.doneOn(today) ? 1 : 0);
+
+    // Before any review has happened, tell a fresh account where its cards are
+    // instead of pretending the day was done: a running first pass shows as
+    // "generating", a finished batch awaiting vetting as "ready in Vet".
+    final generating = !doneToday &&
+        ref.watch(generationControllerProvider).phase == GenPhase.running;
+    final awaitingVet =
+        !doneToday && (ref.watch(pendingCardsProvider).valueOrNull ?? 0) > 0;
+    final title = doneToday
+        ? 'Done for today'
+        : generating
+            ? 'Generating your first cards'
+            : awaitingVet
+                ? 'Cards ready to vet'
+                : 'Nothing to review yet';
+    final caption = doneToday
+        ? 'Retention is about coming back tomorrow, not staying now.'
+        : generating
+            ? "You'll see them in the Vet tab once they're ready."
+            : awaitingVet
+                ? 'Approve your first batch in the Vet tab and it shows up here.'
+                : 'Cards appear here once you approve them in the Vet tab.';
 
     return SafeArea(
       child: Padding(
@@ -159,7 +187,7 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Image.asset('Mascot.png', width: 200, height: 200),
-                    Text(doneToday ? 'Done for today' : 'Nothing to review yet',
+                    Text(title,
                         textAlign: TextAlign.center, style: Typo.display(32)),
                     const SizedBox(height: T.s18),
                     if (doneToday) _streakPill(streak),
@@ -169,11 +197,7 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
                     ],
                     const SizedBox(height: T.s18),
                     Text(
-                      doneToday
-                          ? 'Retention is about coming back tomorrow, not '
-                              'staying now.'
-                          : 'Cards appear here once you approve them in the Vet '
-                              'tab.',
+                      caption,
                       textAlign: TextAlign.center,
                       style: Typo.bodySmall.copyWith(color: T.inkMeta),
                     ),
@@ -224,14 +248,34 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
       );
 
   void _flag(SessionController ctrl) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      backgroundColor: T.ink,
-      content: Text(
-        'Flagged as badly made, not because it is hard. Hard cards stay.',
-        style: Typo.bodySmall.copyWith(color: T.surface),
-      ),
-      duration: const Duration(seconds: 3),
-    ));
+    // Explain the flag once: a top banner on the first flag only, so it never
+    // blocks the grading chips or repeats on every flag.
+    if (!ref.read(flagHintSeenProvider)) {
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.hideCurrentMaterialBanner();
+      messenger.showMaterialBanner(MaterialBanner(
+        backgroundColor: T.ink,
+        content: Text(
+          'Flagged as badly made, not because it is hard. Hard cards stay.',
+          style: Typo.bodySmall.copyWith(color: T.surface),
+        ),
+        leading: const Icon(Icons.flag_outlined, color: T.surface, size: 20),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: T.s8),
+            child: TextButton(
+              onPressed: () => messenger.hideCurrentMaterialBanner(),
+              child: Text('GOT IT',
+                  style: Typo.label.copyWith(color: T.surface)),
+            ),
+          ),
+        ],
+      ));
+      ref.read(flagHintSeenProvider.notifier).markSeen();
+      Future.delayed(const Duration(seconds: 4), () {
+        if (mounted) messenger.hideCurrentMaterialBanner();
+      });
+    }
     ctrl.flag();
     // The remake pile is kept alive by the Retention tab, so refresh it to pick
     // up the just-flagged card.

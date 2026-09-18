@@ -25,4 +25,28 @@ void main() {
     await n.set(1);
     expect(n.state, 5);
   });
+
+  test('cards per generation pass defaults to 15 and persists', () async {
+    SharedPreferences.setMockInitialValues({});
+
+    final a = CardsPerGenerationNotifier();
+    expect(a.state, 15, reason: 'new accounts generate 15 cards by default');
+
+    await a.set(24);
+    expect(a.state, 24);
+
+    final b = CardsPerGenerationNotifier();
+    await Future<void>.delayed(Duration.zero);
+    expect(b.state, 24);
+  });
+
+  test('cards per generation pass clamps out-of-range values', () async {
+    SharedPreferences.setMockInitialValues({});
+
+    final n = CardsPerGenerationNotifier();
+    await n.set(999);
+    expect(n.state, 45);
+    await n.set(1);
+    expect(n.state, 5);
+  });
 }

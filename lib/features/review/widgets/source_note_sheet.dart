@@ -12,10 +12,13 @@ import 'markdown_note.dart';
 /// Screen 04 · Source note (FR-20). Reads the whole vault note (frontmatter,
 /// tags and refs stripped) with the card's source passage highlighted, so the
 /// user can see where the card came from in context. Explore cards have no
-/// vault note, so they show their cited link instead.
+/// vault note, so they list their cited web resources instead - one line per
+/// link, as "concept: link". Concept detail passes the whole concept group so
+/// every resource of that concept shows.
 class SourceNoteSheet extends ConsumerStatefulWidget {
   final GraspCard card;
-  const SourceNoteSheet(this.card, {super.key});
+  final List<GraspCard>? group;
+  const SourceNoteSheet(this.card, {super.key, this.group});
 
   @override
   ConsumerState<SourceNoteSheet> createState() => _SourceNoteSheetState();
@@ -59,14 +62,24 @@ class _SourceNoteSheetState extends ConsumerState<SourceNoteSheet> {
   }
 
   Widget _body(ScrollController scroll, GraspCard card) {
-    // Explore card: no vault note, just the cited web source.
+    // Explore card: no vault note, just its cited web resource(s).
     if (_note == null) {
+      // One line per resource across the concept, as "concept name: link".
+      // Concept detail passes the whole group, so every source is listed.
+      final group = widget.group;
+      final resources = (group ?? [card])
+          .where((c) => c.referenceUrl != null && c.referenceUrl!.isNotEmpty)
+          .toList();
       return ListView(controller: scroll, children: [
-        if (card.sourceExcerpt != null)
+        if (group == null &&
+            card.sourceExcerpt != null &&
+            card.sourceExcerpt!.isNotEmpty)
           MarkdownNote(cleanNoteBody(card.sourceExcerpt!)),
-        if (card.referenceUrl != null) ...[
+        if (resources.isNotEmpty) ...[
           const SizedBox(height: T.s18),
-          _link(card.referenceUrl!),
+          Text('RESOURCES', style: Typo.mono(size: 10, color: T.accent)),
+          const SizedBox(height: T.s8),
+          for (final c in resources) _resource(c),
         ],
       ]);
     }
@@ -99,11 +112,15 @@ class _SourceNoteSheetState extends ConsumerState<SourceNoteSheet> {
     );
   }
 
-  Widget _link(String url) => GestureDetector(
-        onTap: () => launchUrl(Uri.parse(url),
-            mode: LaunchMode.externalApplication),
-        child: Text(url,
-            style: Typo.meta.copyWith(
-                color: T.accent, decoration: TextDecoration.underline)),
+  /// One resource line, "<source name>: <link>", tappable to open the source.
+  Widget _resource(GraspCard c) => Padding(
+        padding: const EdgeInsets.only(bottom: T.s8),
+        child: GestureDetector(
+          onTap: () => launchUrl(Uri.parse(c.referenceUrl!),
+              mode: LaunchMode.externalApplication),
+          child: Text('${c.sourceName}: ${c.referenceUrl}',
+              style: Typo.meta.copyWith(
+                  color: T.accent, decoration: TextDecoration.underline)),
+        ),
       );
 }
