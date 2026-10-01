@@ -43,16 +43,25 @@ class _AppShellState extends ConsumerState<AppShell> {
     if (_kickstarted) return;
     _kickstarted = true;
     try {
-      if (await ref.read(cardsRepoProvider).cardCount() > 0) return;
-      await ref.read(generationControllerProvider.notifier).runPass();
-      if (!mounted) return;
-      final gen = ref.read(generationControllerProvider);
-      if (gen.phase == GenPhase.done && gen.added > 0) {
-        ref.invalidate(vettingControllerProvider);
-        setState(() => _index = 1); // Vet tab
+      final count = await ref.read(cardsRepoProvider).cardCount();
+      if (count == 0) {
+        // Brand-new account: generate the first batch and land on Vet.
+        await ref.read(generationControllerProvider.notifier).runPass();
+        if (!mounted) return;
+        final gen = ref.read(generationControllerProvider);
+        if (gen.phase == GenPhase.done && gen.added > 0) {
+          ref.invalidate(vettingControllerProvider);
+          setState(() => _index = 1); // Vet tab
+        }
+        return;
       }
+      // Returning account: FR-7 automatic background generation. Top up the
+      // pending queue on app open so cards are always ready to vet without
+      // opening Settings. runPass() no-ops when the queue is already full, so
+      // this is cheap when there is nothing to do, and never switches tabs.
+      await ref.read(generationControllerProvider.notifier).runPass();
     } catch (_) {
-      // A failed first pass is harmless; the user can generate from Settings.
+      // A failed pass is harmless; the user can still generate from Settings.
     }
   }
 
@@ -82,6 +91,18 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   @override
   Widget build(BuildContext context) {
+    // Refresh the Vet queue (and its tab badge) the moment a generation pass
+    // adds cards, from anywhere (Settings or the onboarding kickstart), instead
+    // of only when the Vet tab is opened. The shell is always mounted, so this
+    // badge updates live.
+    ref.listen(generationControllerProvider, (prev, next) {
+      if (next.phase == GenPhase.done &&
+          next.added > 0 &&
+          prev?.phase != GenPhase.done) {
+        ref.invalidate(vettingControllerProvider);
+      }
+    });
+
     final screens = [
       SessionScreen(
         onActiveChanged: (a) => setState(() => _sessionActive = a),

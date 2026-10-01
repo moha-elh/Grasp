@@ -24,6 +24,21 @@ class ReviewsRepository {
     });
   }
 
+  /// Just the timestamps of this user's reviews in the last [days] days, for the
+  /// streak grid. No card join, so a review still counts toward a study day even
+  /// if its card was later deleted (RLS scopes to the user).
+  Future<List<DateTime>> reviewDates({int days = 98}) async {
+    final since = DateTime.now()
+        .toUtc()
+        .subtract(Duration(days: days))
+        .toIso8601String();
+    final rows = await _db
+        .from('review_logs')
+        .select('reviewed_at')
+        .gte('reviewed_at', since);
+    return [for (final r in rows) DateTime.parse(r['reviewed_at'] as String)];
+  }
+
   /// This user's review logs from the last [days] days (RLS scopes to the user),
   /// with each card's type embedded via the `cards` FK. Feeds the trend curve.
   Future<List<ReviewRecord>> recentLogs({int days = 90}) async {

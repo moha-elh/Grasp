@@ -1,7 +1,7 @@
 # Software Requirements Specification — Grasp
 **Name:** *Grasp*
 **Author:** Moha (Mouhssine El Haouary)
-**Version:** 1.2 — 2026-09-13
+**Version:** 1.3 — 2026-10-01
 **Type:** Personal mobile application (single user)
 
 ---
@@ -76,11 +76,11 @@ Image / vision-based generation, automatic generator self-tuning beyond the basi
   - swipe **right** → accept into the Retention deck
   - swipe **left** → discard
   - swipe **up** → accept, then open for wording edit
-- **FR-15** — Vetting is **woven into the daily session** as a handful of swipes alongside due reviews, and is **bounded** — no infinite feed, no streak-bait.
+- **FR-15** — Vetting lives in its **own Vet tab** (not interleaved into the review loop), reached when the user chooses — e.g. after the daily dose. It is still **bounded** — the whole pending set in one pass, no infinite feed, no streak-bait. The Vet tab shows a **badge** with the number of cards waiting, which updates live as background generation adds cards. *(v1.2 wove vetting into the session; v1.3 made it a separate tab so the review loop is never interrupted.)*
 
 ### 5.4 Daily Session (Loop)
-- **FR-16 — Friction-free session.** Opening the app immediately starts a session with **no note-picking and no configuration**: due reviews plus a few new cards and pending cards to vet. The user clears the session and closes the app.
-- **FR-17 — Session sizing (grounded default).** The adjustable throttle is the **daily NEW-card intake, defaulting to 10**. **Due reviews are always served in full and are never capped** — retention depends on them. So a session = (cards due today) + (new cards up to the daily cap), with pending cards to vet mixed in. Early sessions run ~10–15 cards and grow naturally as the deck matures. Any optional hard ceiling on total length must always serve due cards before new ones. Rationale in §6.
+- **FR-16 — Friction-free session.** Opening the app immediately starts a session with **no note-picking and no configuration**: due reviews plus a few new cards. The user clears the session and closes the app. Vetting is a separate tab (FR-15), so the review loop is never interrupted.
+- **FR-17 — Session sizing (grounded default).** The adjustable throttle is the **daily NEW-card intake, defaulting to 10**. **Due reviews are always served in full and are never capped** — retention depends on them. So a session = (cards due today) + (new cards up to the daily cap). Early sessions run ~10–15 cards and grow naturally as the deck matures. There is also an **optional total-session cap** in Settings (off by default); when on, it truncates the session **due cards first**, so overflow due reviews resurface the next day rather than new cards displacing them. Rationale in §6.
 
 ### 5.5 The Two Tabs
 - **FR-18 — Notes (Retention) tab:** contains only cards derived from the user's own vetted notes. Where **full spaced repetition** happens and where the §2 goal is measured.
@@ -178,7 +178,7 @@ Supabase was chosen over local-first for **backup of review progress, queryable 
 
 1. **One-time:** connect Dropbox (Full Dropbox scope) and sign in to Supabase.
 2. **Background (no user action):** the app rotates through `#flashcard` notes in `6 - Main Notes`, generates cards coverage-aware, and stores them as `pending`.
-3. **Daily:** open the app → a short session starts automatically → swipe-vet a few new cards + review due cards (grading recall with FSRS, flagging any badly-made card) → close. No note-picking.
+3. **Daily:** open the app → background generation tops up the pending queue → a short review session starts automatically (grade recall with FSRS; like a good card or flag a badly-made one) → optionally hop to the Vet tab to swipe through the cards waiting there → close. No note-picking.
 4. **Explore (when curious):** browse adjacent concepts and cited web-sourced cards; promote worthwhile ones with a single verify, or (preferred) write a note and let it flow into Retention.
 5. **Periodically:** clear the Remake pile in a batch, and check analytics → see which concepts are slipping and where mechanism recall lags naming → re-study or re-explain those.
 

@@ -74,9 +74,18 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: T.ground,
+      // resizeToAvoidBottomInset (default) shrinks the body for the keyboard;
+      // without a scroll view the centered Column then overflows. LayoutBuilder
+      // + IntrinsicHeight lets it stay centered when there's room and scroll
+      // when the keyboard eats it.
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: T.gutter, vertical: T.s24),
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(
+                horizontal: T.gutter, vertical: T.s24),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight - T.s24 * 2),
+              child: IntrinsicHeight(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -130,6 +139,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
               ),
               const Spacer(),
             ],
+          ),
+              ),
+            ),
           ),
         ),
       ),

@@ -78,9 +78,9 @@ class GraspCard {
   }
 
   /// The cited source's human name, so an Internet card's resource reads
-  /// "<name>: <link>". Web cards store "<domain> · <title>" as their citation,
-  /// so the article title is the concept name; a link with no title falls back
-  /// to its domain.
+  /// "name: link". Web cards store "domain · title" as their citation, so the
+  /// article title is the concept name; a link with no title falls back to its
+  /// domain.
   String get sourceName {
     final excerpt = sourceExcerpt ?? '';
     final sep = excerpt.indexOf(' · ');
@@ -141,6 +141,7 @@ class GraspCard {
     String? back,
     CardStatus? status,
     Quality? quality,
+    bool clearQuality = false,
     Map<String, dynamic>? fsrs,
     DateTime? due,
     int? reps,
@@ -159,7 +160,7 @@ class GraspCard {
         sourceExcerpt: sourceExcerpt,
         referenceUrl: referenceUrl,
         status: status ?? this.status,
-        quality: quality ?? this.quality,
+        quality: clearQuality ? null : (quality ?? this.quality),
         fsrs: fsrs ?? this.fsrs,
         due: due ?? this.due,
         reps: reps ?? this.reps,

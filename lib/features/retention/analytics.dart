@@ -154,6 +154,50 @@ final reviewTrendProvider = FutureProvider.autoDispose<TrendSeries>((ref) async 
   return computeTrend(logs);
 });
 
+/// Which calendar days the user reviewed on, plus the current day streak, for
+/// the contribution-grid on Retention. Dates are local midnight so a review at
+/// 11pm and one at 1am the next day count as two separate days as the user sees
+/// them.
+class StreakData {
+  final Set<DateTime> done; // local-midnight dates with >= 1 review
+  final DateTime? first; // earliest review day (grid starts blank before this)
+  final int streak; // current consecutive-day run, counting back from today
+  const StreakData(this.done, this.first, this.streak);
+  int get reviewedDays => done.length;
+}
+
+/// Local calendar day (drops time + timezone offset).
+DateTime streakDay(DateTime t) {
+  final l = t.toLocal();
+  return DateTime(l.year, l.month, l.day);
+}
+
+/// Previous calendar day, DST-safe (DateTime normalizes day 0 / negatives).
+DateTime streakPrevDay(DateTime d) => DateTime(d.year, d.month, d.day - 1);
+
+/// Pure: fold review timestamps into the set of studied days + current streak.
+/// Today not-yet-reviewed does NOT break the streak (it just isn't counted yet).
+/// [now] is injectable for tests.
+StreakData computeStreak(List<DateTime> reviewedAt, {DateTime? now}) {
+  final done = {for (final t in reviewedAt) streakDay(t)};
+  if (done.isEmpty) return const StreakData({}, null, 0);
+  final first = done.reduce((a, b) => a.isBefore(b) ? a : b);
+  final today = streakDay(now ?? DateTime.now());
+  var d = done.contains(today) ? today : streakPrevDay(today);
+  var streak = 0;
+  while (done.contains(d)) {
+    streak++;
+    d = streakPrevDay(d);
+  }
+  return StreakData(done, first, streak);
+}
+
+/// Review days + streak over the last ~14 weeks, for the Retention grid.
+final streakProvider = FutureProvider.autoDispose<StreakData>((ref) async {
+  final dates = await ref.watch(reviewsRepoProvider).reviewDates();
+  return computeStreak(dates);
+});
+
 /// The approved deck (all review states) from Supabase.
 final deckCardsProvider = FutureProvider.autoDispose<List<GraspCard>>(
     (ref) => ref.watch(cardsRepoProvider).approvedDeck());

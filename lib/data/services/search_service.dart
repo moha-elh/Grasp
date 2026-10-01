@@ -1,8 +1,4 @@
-import 'dart:convert';
-
-import 'package:http/http.dart' as http;
-
-import '../../core/config.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// One web search hit with a real, citable URL (the trust layer, FR-20).
 class WebResult {
@@ -12,29 +8,19 @@ class WebResult {
   const WebResult(this.title, this.url, this.content);
 }
 
-/// Web search for Explore web-sourced cards. Tavily by default (OpenAI-style
-/// JSON, generous free tier). Returns real results with URLs so every web card
+/// Web search for Explore web-sourced cards. The Tavily call lives in the
+/// `search` Supabase Edge Function so the search key never ships in the app;
+/// this just invokes it. Returns real results with URLs so every web card
 /// carries a genuine citation rather than an LLM-hallucinated one.
 class SearchService {
-  final http.Client _http;
-  SearchService([http.Client? client]) : _http = client ?? http.Client();
+  final SupabaseClient _db;
+  SearchService(this._db);
 
   Future<List<WebResult>> search(String query, {int maxResults = 2}) async {
-    final resp = await _http.post(
-      Uri.https(Config.searchBaseUrl, Config.searchPath),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'api_key': Config.searchApiKey,
-        'query': query,
-        'max_results': maxResults,
-        'search_depth': 'basic',
-      }),
-    );
-    if (resp.statusCode != 200) {
-      throw StateError('Search failed (${resp.statusCode}): ${resp.body}');
-    }
-    final json = jsonDecode(resp.body) as Map<String, dynamic>;
-    final results = (json['results'] as List?) ?? const [];
+    final res = await _db.functions
+        .invoke('search', body: {'query': query, 'maxResults': maxResults});
+    final data = res.data;
+    final results = (data is Map ? data['results'] as List? : null) ?? const [];
     return results.cast<Map<String, dynamic>>().map((r) {
       return WebResult(
         r['title'] as String? ?? '',

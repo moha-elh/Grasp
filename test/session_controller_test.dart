@@ -39,7 +39,7 @@ class _FakeCardsRepo extends CardsRepository {
       newQueue.take(limit).toList();
 
   @override
-  Future<void> setQuality(String cardId, Quality quality) async {}
+  Future<void> setQuality(String cardId, Quality? quality) async {}
 
   @override
   Future<void> setStatus(String cardId, CardStatus status) async {}
@@ -93,5 +93,48 @@ void main() {
     await pumpEventQueue();
 
     expect(daily.remainingNewToday(10), 10);
+  });
+
+  test('like toggles the quality signal on the current card', () async {
+    final daily = DailyController();
+    await daily.ready;
+
+    final repo = _FakeCardsRepo()..newQueue.add(_card('c'));
+    final session = SessionController(
+      cards: repo,
+      reviews: ReviewsRepository(
+          SupabaseClient('https://x.supabase.co', 'dummy-anon-key')),
+      fsrs: FsrsService(),
+      perDay: 10,
+      daily: daily,
+    );
+    await pumpEventQueue();
+
+    expect(session.state.current!.quality, isNull);
+    session.like();
+    expect(session.state.current!.quality, Quality.liked);
+    session.like();
+    expect(session.state.current!.quality, isNull,
+        reason: 'tapping like again clears it');
+  });
+
+  test('session cap truncates the combined queue', () async {
+    final daily = DailyController();
+    await daily.ready;
+
+    final repo = _FakeCardsRepo()
+      ..newQueue.addAll([for (var i = 0; i < 5; i++) _card('n$i')]);
+    final session = SessionController(
+      cards: repo,
+      reviews: ReviewsRepository(
+          SupabaseClient('https://x.supabase.co', 'dummy-anon-key')),
+      fsrs: FsrsService(),
+      perDay: 10,
+      cap: 2,
+      daily: daily,
+    );
+    await pumpEventQueue();
+
+    expect(session.state.queue.length, 2, reason: 'cap 2 truncates 5 cards');
   });
 }

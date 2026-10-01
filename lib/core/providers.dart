@@ -29,10 +29,14 @@ final userIdProvider = Provider<String?>((ref) {
 
 // --- Services ---
 final fsrsProvider = Provider((_) => FsrsService());
-// Both use the DNS-resilient client so a flaky phone resolver can't break them.
+// Dropbox uses the DNS-resilient client so a flaky phone resolver can't break
+// it. The LLM and search calls go through Supabase Edge Functions (keys live
+// server-side), and the Supabase client is already built on the resilient
+// client in main(), so those stay resilient too.
 final dropboxProvider = Provider((_) => DropboxService(resilientHttpClient()));
-final llmProvider = Provider((_) => LlmService(resilientHttpClient()));
-final searchProvider = Provider((_) => SearchService(resilientHttpClient()));
+final llmProvider = Provider((ref) => LlmService(ref.watch(supabaseProvider)));
+final searchProvider =
+    Provider((ref) => SearchService(ref.watch(supabaseProvider)));
 final exploreServiceProvider = Provider((ref) => ExploreService(
       ref.watch(cardsRepoProvider),
       ref.watch(llmProvider),

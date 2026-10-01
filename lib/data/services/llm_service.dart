@@ -1,8 +1,7 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../core/config.dart';
 import '../models/card.dart';
 import 'generation_prompt.dart';
 
@@ -15,12 +14,13 @@ class GeneratedCard {
   const GeneratedCard(this.front, this.back, this.type, {this.sourceQuote});
 }
 
-/// Authors flashcards from note text via an OpenAI-compatible LLM API
-/// (FR-6, text-only in v1 FR-5). Provider/model configured in Config (Groq
-/// default; Mistral is a drop-in swap). The prompt (generation_prompt.dart) - /// not this glue - is the product.
+/// Authors flashcards from note text (FR-6, text-only in v1 FR-5). The actual
+/// LLM call lives in the `llm` Supabase Edge Function, so the API keys never
+/// ship in the app; this just invokes it. The prompt (generation_prompt.dart) -
+/// not this glue - is the product.
 class LlmService {
-  final http.Client _http;
-  LlmService([http.Client? client]) : _http = client ?? http.Client();
+  final SupabaseClient _db;
+  LlmService(this._db);
 
   Future<List<GeneratedCard>> generate({
     required String notePath,
@@ -70,50 +70,57 @@ class LlmService {
     );
   }
 
-  /// Single JSON-mode chat round-trip. Tries the primary Groq key, then the
-  /// optional fallback key when the primary is rate limited, rejected, or the
-  /// request fails (a plain bad-request 4xx is not retried - another key won't
-  /// fix it).
+  /// Name ONE topic adjacent to [concept] (a neighbour, NOT the concept itself)
+  /// so Explore's web search widens to RELATED material rather than the note's
+  /// own topic. Best-effort: returns null if the model gives nothing usable.
+  Future<String?> relatedTopic(String concept) async {
+    try {
+      final text = await _chat(
+        'Reply with strict JSON only, no prose: {"topic": "..."} where topic is '
+        'a short name (2-5 words).',
+        'Name ONE topic closely related to "$concept" that a learner studying '
+        'it should explore next - a neighbour, NOT "$concept" itself.',
+      );
+      final cleaned = text.replaceAll(RegExp(r'```json|```'), '').trim();
+      final t = (jsonDecode(cleaned) as Map<String, dynamic>)['topic'];
+      return (t is String && t.trim().isNotEmpty) ? t.trim() : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Single JSON-mode chat round-trip through the `llm` Edge Function, which
+  /// holds the Groq keys and does the primary/fallback-key retry server-side.
+  /// Mobile/desktop sockets drop a long request now and then ("connection
+  /// abort"), and a pass makes many of these, so retry transient failures here
+  /// - the one spot every generation/Explore call routes through.
   Future<String> _chat(String system, String user) async {
-    final keys = <String>[Config.llmKey];
-    final fb = Config.llmKeyFallback;
-    if (fb != null && fb.isNotEmpty && fb != Config.llmKey) keys.add(fb);
-
-    final payload = jsonEncode({
-      'model': Config.llmModel,
-      'response_format': {'type': 'json_object'},
-      'messages': [
-        {'role': 'system', 'content': system},
-        {'role': 'user', 'content': user},
-      ],
-    });
-
-    Object error = StateError('LLM failed');
-    for (var i = 0; i < keys.length; i++) {
+    Object? lastErr;
+    for (var attempt = 0; attempt < 3; attempt++) {
+      if (attempt > 0) await Future.delayed(Duration(seconds: 2 * attempt));
       try {
-        final resp = await _http.post(
-          Uri.https(Config.llmBaseUrl, Config.llmPath),
-          headers: {
-            'Authorization': 'Bearer ${keys[i]}',
-            'Content-Type': 'application/json',
-          },
-          body: payload,
-        );
-        if (resp.statusCode == 200) {
-          final body = jsonDecode(resp.body) as Map<String, dynamic>;
-          return body['choices'][0]['message']['content'] as String;
+        final res = await _db.functions
+            .invoke('llm', body: {'system': system, 'user': user});
+        final data = res.data;
+        if (data is Map && data['content'] is String) {
+          return data['content'] as String;
         }
-        error = StateError('LLM failed (${resp.statusCode}): ${resp.body}');
-        final worthFallback = resp.statusCode == 429 ||
-            resp.statusCode == 401 ||
-            resp.statusCode == 403 ||
-            resp.statusCode >= 500;
-        if (!worthFallback) break;
+        throw StateError('LLM proxy error: ${data is Map ? data['error'] : data}');
+      } on FunctionException catch (e) {
+        // invoke throws this on any non-2xx; the function's real message (which
+        // carries the upstream Groq status) is in details, not in String(e).
+        final msg = e.details is Map ? (e.details['error'] ?? e.details) : e.details;
+        // 429 = Groq rate limit; backoff + retry won't clear free-tier TPM in
+        // seconds, so surface it plainly instead of hiding behind "unreachable".
+        if ('$msg'.contains('(429)')) throw StateError('Rate limited by Groq: $msg');
+        lastErr = msg; // 5xx / transient: another attempt is worth it
+      } on StateError {
+        rethrow;
       } catch (e) {
-        error = e; // network error: worth trying the other key
+        lastErr = e; // network drop / timeout: worth another attempt
       }
     }
-    throw error is StateError ? error : StateError('LLM failed: $error');
+    throw StateError('LLM failed after retries: $lastErr');
   }
 
   List<GeneratedCard> _parse(String text) {

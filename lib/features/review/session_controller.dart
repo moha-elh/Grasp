@@ -64,6 +64,7 @@ final sessionControllerProvider =
     reviews: ref.watch(reviewsRepoProvider),
     fsrs: ref.watch(fsrsProvider),
     perDay: ref.watch(newCardsPerDayProvider),
+    cap: ref.watch(sessionCapProvider),
     daily: ref.read(dailyProgressProvider.notifier),
   ),
 );
@@ -73,6 +74,7 @@ class SessionController extends StateNotifier<SessionState> {
   final ReviewsRepository? _reviews;
   final FsrsService? _fsrs;
   final int _perDay;
+  final int _cap;
   final DailyController? _daily;
 
   SessionController({
@@ -81,10 +83,12 @@ class SessionController extends StateNotifier<SessionState> {
     required FsrsService fsrs,
     required int perDay,
     required DailyController daily,
+    int cap = 0,
   })  : _cards = cards,
         _reviews = reviews,
         _fsrs = fsrs,
         _perDay = perDay,
+        _cap = cap,
         _daily = daily,
         super(const SessionState(queue: [], loading: true)) {
     _load();
@@ -96,6 +100,7 @@ class SessionController extends StateNotifier<SessionState> {
         _reviews = null,
         _fsrs = null,
         _perDay = 0,
+        _cap = 0,
         _daily = null,
         super(SessionState(queue: queue));
 
@@ -113,13 +118,31 @@ class SessionController extends StateNotifier<SessionState> {
       // Introduction is counted when a new card is graded, not when drawn, so
       // reopening/reloading redraws the same unreviewed cards instead of
       // burning the allotment and emptying the queue.
-      if (mounted) state = SessionState(queue: [...due, ...fresh]);
+      var queue = [...due, ...fresh];
+      // Optional total-session cap (Settings): truncate due-reviews-first so the
+      // overflow resurfaces next day. Off (0) leaves due reviews uncapped.
+      if (_cap > 0 && queue.length > _cap) queue = queue.sublist(0, _cap);
+      if (mounted) state = SessionState(queue: queue);
     } catch (e) {
       if (mounted) state = SessionState(queue: const [], error: e.toString());
     }
   }
 
   void reveal() => state = state.copyWith(revealed: true);
+
+  /// Quality signal (FR-24), a separate axis from the FSRS grade: mark the
+  /// current card as a good one, or clear it by tapping again. Never schedules
+  /// or advances - it only feeds generation/deck hygiene (the FR-9 mix tuning).
+  void like() {
+    if (state.isComplete) return;
+    final card = state.current!;
+    final wasLiked = card.quality == Quality.liked;
+    final next = wasLiked ? null : Quality.liked;
+    state.queue[state.index] =
+        card.copyWith(quality: next, clearQuality: wasLiked);
+    if (_cards != null) _persist(() => _cards.setQuality(card.id, next));
+    state = state.copyWith(); // new identity so the heart repaints
+  }
 
   /// Grade drives scheduling (FR-22): update FSRS state + log in one write.
   void grade(fsrs.Rating rating) {

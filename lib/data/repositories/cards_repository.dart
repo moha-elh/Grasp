@@ -125,17 +125,33 @@ class CardsRepository {
 
   /// Edit wording on swipe-up accept (FR-14).
   Future<void> updateWording(String cardId, {String? front, String? back}) => _t.update({
-        if (front != null) 'front': front,
-        if (back != null) 'back': back,
+        'front': ?front,
+        'back': ?back,
         'updated_at': DateTime.now().toUtc().toIso8601String(),
       }).eq('id', cardId);
 
   /// Like/dislike quality signal (FR-24). Disliking an in-deck card moves it to
   /// the Remake pile (FR-26) - the caller decides that; this just sets fields.
-  Future<void> setQuality(String cardId, Quality quality) => _t.update({
-        'quality': quality.name,
+  /// A null [quality] clears the rating (un-liking a card).
+  Future<void> setQuality(String cardId, Quality? quality) => _t.update({
+        'quality': quality?.name,
         'updated_at': DateTime.now().toUtc().toIso8601String(),
       }).eq('id', cardId);
+
+  /// Net like/dislike per card type (liked +1, disliked -1), over rated cards
+  /// only. Feeds the generation mix self-adjustment (FR-9): the user's likes
+  /// nudge which card types get authored more.
+  Future<Map<CardType, int>> qualityBalanceByType() async {
+    final rows = await _t.select('card_type, quality').not('quality', 'is', null);
+    final net = {for (final t in CardType.values) t: 0};
+    for (final r in rows) {
+      final t = CardType.values.firstWhere((e) => e.name == r['card_type'],
+          orElse: () => CardType.mechanism);
+      final q = r['quality'];
+      net[t] = net[t]! + (q == 'liked' ? 1 : (q == 'disliked' ? -1 : 0));
+    }
+    return net;
+  }
 
   Future<List<GraspCard>> remakePile() async {
     final rows = await _t.select().eq('status', 'remake_pending');

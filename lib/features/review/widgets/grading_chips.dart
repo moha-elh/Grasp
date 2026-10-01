@@ -12,12 +12,16 @@ class GradingChips extends StatelessWidget {
   final Map<fsrs.Rating, Duration> intervals;
   final ValueChanged<fsrs.Rating> onGrade;
   final VoidCallback onFlag;
+  final VoidCallback onLike;
+  final bool liked;
 
   const GradingChips({
     super.key,
     required this.intervals,
     required this.onGrade,
     required this.onFlag,
+    required this.onLike,
+    this.liked = false,
   });
 
   @override
@@ -45,24 +49,56 @@ class GradingChips extends StatelessWidget {
           const SizedBox(height: T.s12),
           Divider(height: 1, color: T.hairline),
           const SizedBox(height: T.s12),
-          // A calm, clearly separate utility, never a fifth grade (FR-25).
-          OutlinedButton.icon(
-            onPressed: onFlag,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: T.inkMeta,
-              side: BorderSide(color: T.hairline),
-              shape: const StadiumBorder(),
-              padding: const EdgeInsets.symmetric(
-                  horizontal: T.s18, vertical: T.s8),
-            ),
-            icon: const Icon(Icons.outlined_flag, size: 16, color: T.inkMeta),
-            label: Text('Flag as badly made',
-                style: Typo.meta.copyWith(color: T.inkMeta)),
+          // Calm, clearly separate quality utilities, never a fifth grade
+          // (FR-24/FR-25). Like marks a good card; Flag sends a badly-made one
+          // to the remake pile. Both are a separate axis from the grade.
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Flexible(
+                child: _utility(
+                  onTap: onLike,
+                  icon: liked ? Icons.favorite : Icons.favorite_border,
+                  label: liked ? 'Good card' : 'Like',
+                  color: liked ? T.accent : T.inkMeta,
+                ),
+              ),
+              const SizedBox(width: T.s12),
+              Flexible(
+                child: _utility(
+                  onTap: onFlag,
+                  icon: Icons.outlined_flag,
+                  label: 'Flag as badly made',
+                  color: T.inkMeta,
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
+
+  Widget _utility({
+    required VoidCallback onTap,
+    required IconData icon,
+    required String label,
+    required Color color,
+  }) =>
+      OutlinedButton.icon(
+        onPressed: onTap,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: color,
+          side: BorderSide(color: T.hairline),
+          shape: const StadiumBorder(),
+          padding: const EdgeInsets.symmetric(horizontal: T.s18, vertical: T.s8),
+        ),
+        icon: Icon(icon, size: 16, color: color),
+        label: Text(label,
+            style: Typo.meta.copyWith(color: color),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis),
+      );
 
   // Each grade carries its own semantic color: Again is a solid danger chip,
   // the rest are soft tinted pills (amber / blue / green) so the row reads as a

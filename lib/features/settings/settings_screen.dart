@@ -36,6 +36,8 @@ class SettingsScreen extends ConsumerWidget {
             const SizedBox(height: T.s12),
             _readonly('Due reviews are always served in full and never capped. '
                 'Retention depends on them.'),
+            const SizedBox(height: T.s12),
+            _sessionCap(ref),
             const SizedBox(height: T.s32),
             _section('REMINDERS'),
             _reminder(context, ref),
@@ -45,6 +47,9 @@ class SettingsScreen extends ConsumerWidget {
             const SizedBox(height: T.s32),
             _section('GENERATION MIX'),
             _mix(),
+            const SizedBox(height: T.s12),
+            _readonly('Starts even, then leans toward the card types you like '
+                'and away from the ones you flag.'),
             const SizedBox(height: T.s32),
             _section('CONTENT'),
             _generateSize(ref),
@@ -89,6 +94,57 @@ class SettingsScreen extends ConsumerWidget {
         Text('Raising this means more new cards now, and a heavier review load '
             'in the weeks after, since every new card keeps coming back until '
             'it sticks.', style: Typo.bodySmall),
+      ],
+    ));
+  }
+
+  /// Optional hard cap on the whole session (due + new). Off by default so due
+  /// reviews stay uncapped; on, it limits total cards per session.
+  Widget _sessionCap(WidgetRef ref) {
+    final cap = ref.watch(sessionCapProvider);
+    final on = cap > 0;
+    return _panel(Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text('Cap total session size',
+                  style: Typo.body.copyWith(color: T.ink)),
+            ),
+            Switch(
+              value: on,
+              activeThumbColor: T.accent,
+              onChanged: (v) =>
+                  ref.read(sessionCapProvider.notifier).set(v ? 20 : 0),
+            ),
+          ],
+        ),
+        if (on) ...[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('At most', style: Typo.bodySmall),
+              Text('$cap', style: Typo.display(24)),
+            ],
+          ),
+          Slider(
+            value: cap.toDouble().clamp(10, 100),
+            min: 10,
+            max: 100,
+            divisions: 18,
+            activeColor: T.accent,
+            label: '$cap',
+            onChanged: (v) =>
+                ref.read(sessionCapProvider.notifier).set(v.round()),
+          ),
+          Text('Limits the whole session, due reviews first. Deferred reviews '
+              'come back the next day, so long gaps can hurt retention.',
+              style: Typo.bodySmall),
+        ] else
+          Text('Off: every due review is served, plus up to your new-card cap.',
+              style: Typo.bodySmall),
       ],
     ));
   }

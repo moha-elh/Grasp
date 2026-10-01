@@ -7,23 +7,12 @@ class Config {
   static String get supabaseKey => _req('SUPABASE_KEY'); // publishable key
   static String get dropboxAppKey => _req('DROPBOX_APP_KEY');
 
-  // --- LLM: OpenAI-compatible provider (Groq default) ---
-  static String get llmKey => _req('GROQ_API_KEY');
-  // Optional second Groq key: used as a fallback when the primary is rate
-  // limited or rejected, so generation keeps working.
-  static String? get llmKeyFallback => dotenv.maybeGet('GROQ_API_KEY_2');
-  static const llmBaseUrl = 'api.groq.com';
-  static const llmPath = '/openai/v1/chat/completions';
-  static const llmModel = 'openai/gpt-oss-120b';
-  // Mistral swap: MISTRAL_API_KEY, 'api.mistral.ai', '/v1/chat/completions',
-  // model e.g. 'mistral-large-latest'.
-
-  // --- Web search for Explore web cards (FR-19/FR-20). Tavily default: real
-  // cited URLs, free tier. Explore adjacency needs no key; web is best-effort
-  // and silently skips when this is absent. ---
-  static String get searchApiKey => _req('SEARCH_API_KEY');
-  static const searchBaseUrl = 'api.tavily.com';
-  static const searchPath = '/search';
+  // --- LLM + web search ---
+  // The Groq (LLM) and Tavily (search) keys live in Supabase Edge Functions
+  // (`supabase/functions/llm` and `.../search`), NOT in the app, so they can't
+  // be extracted from the APK. Set them with `supabase secrets set`. The client
+  // reaches them through supabase.functions.invoke (see LlmService/SearchService),
+  // authenticated by the signed-in user's session.
 
   // --- Dropbox (FR-2, FR-3) ---
   /// Vault folder scoped for reading. Only notes here are considered.

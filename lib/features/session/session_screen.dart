@@ -103,6 +103,8 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
                 intervals: fsrs.previewIntervals(card),
                 onGrade: ctrl.grade,
                 onFlag: () => _flag(ctrl),
+                onLike: ctrl.like,
+                liked: card.quality == Quality.liked,
               ),
             ],
           ],

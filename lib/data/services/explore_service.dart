@@ -45,11 +45,15 @@ class ExploreService {
 
     try {
       for (final concept in concepts.take(web)) {
-        final results = await _search.search(concept, maxResults: 1);
+        // Widen the web search to a RELATED topic instead of the note's own
+        // concept, so Explore surfaces new neighbouring material. Falls back to
+        // the concept itself if the model gives nothing.
+        final topic = await _llm.relatedTopic(concept) ?? concept;
+        final results = await _search.search(topic, maxResults: 1);
         if (results.isEmpty) continue;
         final r = results.first;
         final card = await _llm.authorExplore(
-            seedConcept: concept, webTitle: r.title, webContent: r.content);
+            seedConcept: topic, webTitle: r.title, webContent: r.content);
         if (card == null) continue;
         items.add(ExploreItem(
           id: 'w${n++}',

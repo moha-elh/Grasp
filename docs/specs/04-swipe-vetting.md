@@ -24,9 +24,14 @@ opens with **vetting** first, then flows into the review loop.
 
 ## What this delivers
 
-Unified swipe vetting (FR-14, FR-15) woven into the front of the daily session,
-against in-memory mock pending cards — testable before background generation /
-auth land. Two design-system screens:
+> **Update (v1.3):** vetting is no longer woven into the session. It now lives in
+> its own **Vet tab** with a live count badge, so the review loop is never
+> interrupted (see FR-15 in the requirements spec). The swipe mechanics below are
+> unchanged; only the entry point moved.
+
+Unified swipe vetting (FR-14, FR-15), originally woven into the front of the
+daily session, against in-memory mock pending cards — testable before background
+generation / auth land. Two design-system screens:
 
 - **05 — swipe vetting:** a bounded batch (header `Vet N` + dot row of what
   remains). Both front and back visible, type badge + `PENDING` badge from the

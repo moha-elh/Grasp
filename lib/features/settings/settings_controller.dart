@@ -32,6 +32,32 @@ class NewCardsPerDayNotifier extends StateNotifier<int> {
   }
 }
 
+/// Optional hard cap on TOTAL session size (due + new). 0 = off, the default,
+/// which keeps due reviews uncapped. When set, the combined queue is truncated
+/// due-reviews-first, so deferred reviews simply resurface the next day.
+/// ponytail: plain truncation, no rollover accounting.
+final sessionCapProvider =
+    StateNotifierProvider<SessionCapNotifier, int>((_) => SessionCapNotifier());
+
+class SessionCapNotifier extends StateNotifier<int> {
+  static const _key = 'session_cap';
+
+  SessionCapNotifier() : super(0) {
+    _load();
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    state = prefs.getInt(_key) ?? 0;
+  }
+
+  Future<void> set(int value) async {
+    state = value < 0 ? 0 : value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_key, state);
+  }
+}
+
 /// How many new cards a single generation pass should produce (FR-7). A
 /// bigger pass fills the Vet queue faster; a heavier vet burden follows.
 /// Persisted to shared_preferences.
