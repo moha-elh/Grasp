@@ -18,6 +18,7 @@ class SessionState {
   final bool loading;
   final String? error;
   final String? writeError; // last grade/flag persistence failed (surfaced, non-blocking)
+  final int target; // full session size; fewer ready cards = wait for more
 
   const SessionState({
     required this.queue,
@@ -28,8 +29,12 @@ class SessionState {
     this.loading = false,
     this.error,
     this.writeError,
+    this.target = 0,
   });
 
+  /// Some cards are ready but not the full session: hold off (vet/generate
+  /// more) rather than serve a short session, unless the user starts anyway.
+  bool get waiting => index == 0 && queue.isNotEmpty && queue.length < target;
   bool get isComplete => index >= queue.length;
   bool get isEmpty => queue.isEmpty;
   GraspCard? get current => isComplete ? null : queue[index];
@@ -52,6 +57,7 @@ class SessionState {
         loading: loading,
         error: error,
         writeError: clearWriteError ? null : (writeError ?? this.writeError),
+        target: target,
       );
 }
 
@@ -119,10 +125,15 @@ class SessionController extends StateNotifier<SessionState> {
       // reopening/reloading redraws the same unreviewed cards instead of
       // burning the allotment and emptying the queue.
       var queue = [...due, ...fresh];
+      // The full dose: every due review plus today's remaining new allotment.
+      var target = due.length + remaining;
       // Optional total-session cap (Settings): truncate due-reviews-first so the
       // overflow resurfaces next day. Off (0) leaves due reviews uncapped.
-      if (_cap > 0 && queue.length > _cap) queue = queue.sublist(0, _cap);
-      if (mounted) state = SessionState(queue: queue);
+      if (_cap > 0) {
+        if (queue.length > _cap) queue = queue.sublist(0, _cap);
+        if (target > _cap) target = _cap;
+      }
+      if (mounted) state = SessionState(queue: queue, target: target);
     } catch (e) {
       if (mounted) state = SessionState(queue: const [], error: e.toString());
     }
@@ -205,6 +216,9 @@ class SessionController extends StateNotifier<SessionState> {
       state = state.copyWith(clearWriteError: true);
     }
   }
+
+  /// Start with the cards that are ready even though the session isn't full.
+  void startAnyway() => state = SessionState(queue: state.queue);
 
   void restart() => state = SessionState(queue: state.queue);
 }

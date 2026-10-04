@@ -15,8 +15,8 @@ import '../vetting/vetting_screen.dart';
 
 /// Root navigation: Session · Vet · Retention · Explore (§14, FR-18/19).
 /// Vetting is its own tab now (visited when you like, e.g. after the daily
-/// dose). The tab bar hides during an active review so the loop isn't
-/// interrupted - Session drives that via [onActiveChanged].
+/// dose). The tab bar is always visible; Session reports an active review via
+/// [onActiveChanged] so switching tabs never resets it.
 class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key});
 
@@ -74,10 +74,9 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   void _select(int i) {
     // Reload on tab open so newly approved/generated cards show up: the shell
-    // keeps these providers alive, so they don't refetch on their own. Safe
-    // because the tab bar is hidden during an active review, so this never
-    // interrupts a session in progress.
-    if (i == 0) {
+    // keeps these providers alive, so they don't refetch on their own. Skipped
+    // while a review is in progress so leaving and returning keeps your place.
+    if (i == 0 && !_sessionActive) {
       ref.invalidate(sessionControllerProvider);
       ref.invalidate(pendingCardsProvider);
     }
@@ -114,12 +113,7 @@ class _AppShellState extends ConsumerState<AppShell> {
 
     return Scaffold(
       body: IndexedStack(index: _index, children: screens),
-      // Hide the bar only while a review is running ON the Session tab, so the
-      // loop isn't interrupted. The offstage Session screen reports "active"
-      // even while you're elsewhere (e.g. after changing the card throttle
-      // redraws the queue), which must never trap you on another tab.
-      bottomNavigationBar:
-          (_sessionActive && _index == 0) ? null : _buildTabBar(),
+      bottomNavigationBar: _buildTabBar(),
     );
   }
 

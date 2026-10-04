@@ -35,16 +35,19 @@ class GenerationService {
   }
 
   /// Run one bounded pass. Returns how many cards were added. [cardsTotal]
-  /// is the user's target for the whole pass (the "Cards per pass" setting).
+  /// is the user's target for the whole pass (the "Cards per pass" setting),
+  /// and the pass adds exactly that many unless every note runs dry.
   /// [notesPerPass] only sets the per-note cap (so no single note is stuffed);
-  /// the pass visits as many notes as it takes to reach the target, since the
-  /// LLM often returns fewer than asked per note, then stops at the target or
-  /// the pending-queue cap.
+  /// the pass cycles through the notes, least-covered first, until the target
+  /// is met or a full round adds nothing. Each call is shown the note's
+  /// existing card fronts, so revisiting a note yields new ideas, not repeats.
   Future<int> runPass({
     required String userId,
     int cardsTotal = Config.defaultCardsPerGeneration,
     int notesPerPass = Config.generationNotesPerPass,
   }) async {
+    // Only gate the START of a pass on the pending cap, so a pass that runs
+    // always delivers its full size instead of stopping at a random count.
     if (await _cards.pendingCount() >= Config.pendingQueueTarget) return 0;
 
     final notes = await _dropbox.eligibleNotes();
@@ -56,35 +59,52 @@ class GenerationService {
     final targetMix = await _targetMix();
     var budget = cardsTotal;
     var added = 0;
-    for (final path in order) {
-      if (budget <= 0) break;
-      if (await _cards.pendingCount() >= Config.pendingQueueTarget) break;
-      final note = byPath[path];
-      if (note == null) continue;
-
-      final generated = await _llm.generate(
-        notePath: path,
-        noteContent: note.content,
-        targetMix: targetMix,
-        maxCards: budget < maxPerNote ? budget : maxPerNote,
-      );
-      if (generated.isEmpty) {
-        await _coverage.markGenerated(userId, path, 0);
-        continue;
+    // A mature vault answers "nothing new" a lot; bound the LLM calls so a
+    // pass can't sweep hundreds of notes into the rate limit.
+    // ponytail: flat cap, smarter would skip notes recently found exhausted.
+    var calls = cardsTotal;
+    try {
+      while (budget > 0 && calls > 0) {
+        final before = added;
+        for (final path in order) {
+          if (budget <= 0 || calls-- <= 0) break;
+          final note = byPath[path]!;
+          final existing = await _cards.frontsForNote(path);
+          final seen = existing.map(_norm).toSet();
+          final generated = (await _llm.generate(
+            notePath: path,
+            noteContent: note.content,
+            targetMix: targetMix,
+            maxCards: budget < maxPerNote ? budget : maxPerNote,
+            existingFronts: existing,
+          ))
+              .where((c) => seen.add(_norm(c.front))) // drop exact repeats
+              .take(budget) // the model sometimes overshoots "at most N"
+              .toList();
+          await _coverage.markGenerated(userId, path, generated.length);
+          if (generated.isEmpty) continue;
+          await _cards.insertGenerated(
+            userId: userId,
+            sourcePath: path,
+            sourceExcerpt: _excerpt(note.content),
+            cards: generated,
+            fsrs: _fsrs,
+          );
+          added += generated.length;
+          budget -= generated.length;
+        }
+        if (added == before) break; // every note is covered; nothing new left
       }
-      await _cards.insertGenerated(
-        userId: userId,
-        sourcePath: path,
-        sourceExcerpt: _excerpt(note.content),
-        cards: generated,
-        fsrs: _fsrs,
-      );
-      await _coverage.markGenerated(userId, path, generated.length);
-      added += generated.length;
-      budget -= generated.length;
+    } catch (_) {
+      // Keep what a partly-finished pass already stored; only a pass that
+      // produced nothing surfaces the error (e.g. Groq rate limit).
+      if (added == 0) rethrow;
     }
     return added;
   }
+
+  static String _norm(String s) =>
+      s.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), ' ').trim();
 
   /// A short trust-layer snippet of the note (FR-20), whitespace-collapsed.
   String _excerpt(String content, {int max = 280}) {

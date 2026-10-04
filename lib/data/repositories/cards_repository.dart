@@ -70,6 +70,18 @@ class CardsRepository {
     });
   }
 
+  /// Fronts of every card already made from [sourcePath] (any status, so
+  /// discarded ideas are not re-proposed either). Newest first, capped to keep
+  /// the generation prompt small.
+  Future<List<String>> frontsForNote(String sourcePath, {int limit = 50}) async {
+    final rows = await _t
+        .select('front')
+        .eq('source_path', sourcePath)
+        .order('created_at', ascending: false)
+        .limit(limit);
+    return [for (final r in rows) r['front'] as String];
+  }
+
   /// Pending cards awaiting vetting, drawn across all notes (FR-14). Loads the
   /// whole pending set (generation caps it), not an arbitrary batch of 20.
   Future<List<GraspCard>> pendingToVet({int limit = 500}) async {

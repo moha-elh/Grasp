@@ -23,15 +23,21 @@ Deno.serve(async (req) => {
       return json({ error: "system and user are required" }, 400);
     }
 
-    // Primary key, then the optional fallback when the first is rate limited or
-    // rejected (the fallback logic used to live in the Dart client).
-    const keys = [Deno.env.get("GROQ_API_KEY"), Deno.env.get("GROQ_API_KEY_2")]
+    // Spread calls across the keys (random start), falling back to the other
+    // when one is rate limited or rejected. NOTE: Groq limits are per
+    // ORGANIZATION, so two keys from the same Groq account share one quota.
+    const all = [Deno.env.get("GROQ_API_KEY"), Deno.env.get("GROQ_API_KEY_2")]
       .filter((k): k is string => !!k && k.length > 0);
-    if (keys.length === 0) return json({ error: "no GROQ key configured" }, 500);
+    if (all.length === 0) return json({ error: "no GROQ key configured" }, 500);
+    const start = Math.floor(Math.random() * all.length);
+    const keys = [...all.slice(start), ...all.slice(0, start)];
 
     const payload = JSON.stringify({
       model: MODEL,
       response_format: { type: "json_object" },
+      // gpt-oss is a reasoning model; its hidden reasoning tokens count toward
+      // the free-tier tokens-per-minute limit, so keep them short.
+      reasoning_effort: "low",
       messages: [
         { role: "system", content: system },
         { role: "user", content: user },
@@ -55,7 +61,7 @@ Deno.serve(async (req) => {
         lastErr = "LLM returned no content";
         break;
       }
-      lastErr = `LLM failed (${resp.status}): ${await resp.text()}`;
+      lastErr = `LLM failed (${resp.status}) [key ${(start + i) % all.length + 1}]: ${await resp.text()}`;
       console.error(lastErr);
       // A plain bad request won't be fixed by another key; only retry on
       // rate-limit / auth / server errors.

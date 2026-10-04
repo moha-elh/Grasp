@@ -137,4 +137,25 @@ void main() {
 
     expect(session.state.queue.length, 2, reason: 'cap 2 truncates 5 cards');
   });
+
+  test('a short queue waits for the full session until started anyway', () async {
+    final daily = DailyController();
+    await daily.ready;
+    final repo = _FakeCardsRepo()
+      ..newQueue.addAll([for (var i = 0; i < 7; i++) _card('n$i')]);
+    final session = SessionController(
+      cards: repo,
+      reviews: ReviewsRepository(
+          SupabaseClient('https://x.supabase.co', 'dummy-anon-key')),
+      fsrs: FsrsService(),
+      perDay: 10,
+      daily: daily,
+    );
+    await pumpEventQueue();
+
+    expect(session.state.waiting, isTrue, reason: '7 ready of a 10-card session');
+    session.startAnyway();
+    expect(session.state.waiting, isFalse);
+    expect(session.state.queue.length, 7);
+  });
 }

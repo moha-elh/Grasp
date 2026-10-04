@@ -27,6 +27,7 @@ class LlmService {
     required String noteContent,
     required Map<String, double> targetMix,
     int maxCards = 6,
+    List<String> existingFronts = const [],
   }) async {
     final text = await _chat(
       generationSystemPrompt,
@@ -35,9 +36,10 @@ class LlmService {
         noteContent: noteContent,
         targetMix: targetMix,
         maxCards: maxCards,
+        existingFronts: existingFronts,
       ),
     );
-    return _parse(text);
+    return parseCards(text);
   }
 
   /// Author ONE Explore card (FR-19): an adjacent concept, or a card built
@@ -90,14 +92,13 @@ class LlmService {
   }
 
   /// Single JSON-mode chat round-trip through the `llm` Edge Function, which
-  /// holds the Groq keys and does the primary/fallback-key retry server-side.
+  /// holds the Groq keys and does the key rotation/fallback server-side.
   /// Mobile/desktop sockets drop a long request now and then ("connection
   /// abort"), and a pass makes many of these, so retry transient failures here
   /// - the one spot every generation/Explore call routes through.
   Future<String> _chat(String system, String user) async {
     Object? lastErr;
-    for (var attempt = 0; attempt < 3; attempt++) {
-      if (attempt > 0) await Future.delayed(Duration(seconds: 2 * attempt));
+    for (var attempt = 0; attempt < 5; attempt++) {
       try {
         final res = await _db.functions
             .invoke('llm', body: {'system': system, 'user': user});
@@ -109,32 +110,67 @@ class LlmService {
       } on FunctionException catch (e) {
         // invoke throws this on any non-2xx; the function's real message (which
         // carries the upstream Groq status) is in details, not in String(e).
-        final msg = e.details is Map ? (e.details['error'] ?? e.details) : e.details;
-        // 429 = Groq rate limit; backoff + retry won't clear free-tier TPM in
-        // seconds, so surface it plainly instead of hiding behind "unreachable".
-        if ('$msg'.contains('(429)')) throw StateError('Rate limited by Groq: $msg');
+        final msg = '${e.details is Map ? (e.details['error'] ?? e.details) : e.details}';
+        if (msg.contains('(429)')) {
+          // Per-minute limits (free-tier TPM/RPM) clear in seconds: wait as
+          // long as Groq says, then go again. Daily limits don't, so give up.
+          final wait = rateLimitWait(msg);
+          if (wait == null) throw StateError('Rate limited by Groq: $msg');
+          lastErr = msg;
+          await Future.delayed(wait);
+          continue;
+        }
         lastErr = msg; // 5xx / transient: another attempt is worth it
       } on StateError {
         rethrow;
       } catch (e) {
         lastErr = e; // network drop / timeout: worth another attempt
       }
+      await Future.delayed(Duration(seconds: 2 * (attempt + 1)));
     }
     throw StateError('LLM failed after retries: $lastErr');
   }
 
-  List<GeneratedCard> _parse(String text) {
+  /// How long to wait out a Groq 429, from its "Please try again in 1m2.5s"
+  /// hint (+1s slack, 20s if absent). Null for daily limits (TPD/RPD), which
+  /// no short wait clears, or for waits over a minute.
+  static Duration? rateLimitWait(String msg) {
+    if (RegExp(r'per day|\(TPD\)|\(RPD\)').hasMatch(msg)) return null;
+    final m = RegExp(r'try again in (?:(\d+)m(?!s))?([\d.]+)(ms|s)').firstMatch(msg);
+    if (m == null) return const Duration(seconds: 20);
+    final secs = int.parse(m[1] ?? '0') * 60 +
+        double.parse(m[2]!) / (m[3] == 'ms' ? 1000 : 1);
+    if (secs > 60) return null;
+    return Duration(milliseconds: ((secs + 1) * 1000).round());
+  }
+
+  /// Cards from the model's reply. A malformed reply or card is skipped, not
+  /// thrown, so one bad answer can't abort a whole generation pass.
+  static List<GeneratedCard> parseCards(String text) {
     // Model is told to emit strict JSON; strip stray fences defensively.
     final cleaned = text.replaceAll(RegExp(r'```json|```'), '').trim();
-    final json = jsonDecode(cleaned) as Map<String, dynamic>;
-    return (json['cards'] as List).cast<Map<String, dynamic>>().map((c) {
-      return GeneratedCard(
-        c['front'] as String,
-        c['back'] as String,
-        CardType.values.firstWhere((e) => e.name == c['type'],
-            orElse: () => CardType.mechanism),
-        sourceQuote: c['quote'] as String?,
-      );
-    }).toList();
+    Object? json;
+    try {
+      json = jsonDecode(cleaned);
+    } on FormatException {
+      return [];
+    }
+    final cards = json is Map ? json['cards'] : null;
+    if (cards is! List) return [];
+    return [
+      for (final c in cards)
+        if (c is Map &&
+            c['front'] is String &&
+            c['back'] is String &&
+            (c['front'] as String).trim().isNotEmpty &&
+            (c['back'] as String).trim().isNotEmpty)
+          GeneratedCard(
+            c['front'] as String,
+            c['back'] as String,
+            CardType.values.firstWhere((e) => e.name == c['type'],
+                orElse: () => CardType.mechanism),
+            sourceQuote: c['quote'] is String ? c['quote'] as String : null,
+          ),
+    ];
   }
 }

@@ -76,14 +76,21 @@ String generationUserPrompt({
   required String noteContent,
   required Map<String, double> targetMix,
   int maxCards = 6,
+  List<String> existingFronts = const [],
 }) {
+  final covered = existingFronts.isEmpty
+      ? ''
+      : '\nALREADY COVERED by existing cards from this note. Do NOT repeat or '
+          'rephrase these; cover different ideas. If nothing new is left, '
+          'return {"cards": []}.\n'
+          '${existingFronts.map((f) => '- $f').join('\n')}\n';
   final mix = targetMix.entries
       .map((e) => '${e.key} ${(e.value * 100).round()}%')
       .join(', ');
   return '''
 Note path: $notePath
 Aim for at most $maxCards cards. Target type mix: $mix.
-
+$covered
 NOTE CONTENT:
 $noteContent
 ''';

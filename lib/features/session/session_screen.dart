@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers.dart';
 import '../../data/models/card.dart';
 import '../../design/tokens.dart';
+import '../../design/widgets/primary_button.dart';
 import '../../design/typography.dart';
 import '../generation/generation_controller.dart';
 import '../remake/remake_controller.dart';
@@ -71,6 +72,10 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
     if (state.isComplete) {
       _syncActive(false);
       return _done(state);
+    }
+    if (state.waiting) {
+      _syncActive(false);
+      return _waiting(state, ctrl);
     }
 
     _syncActive(true);
@@ -207,6 +212,49 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
                 ),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Fewer cards are ready than a full session. Wait for more to be vetted
+  /// (generation tops up the Vet queue on app open), or start short anyway.
+  Widget _waiting(SessionState state, SessionController ctrl) {
+    final generating =
+        ref.watch(generationControllerProvider).phase == GenPhase.running;
+    final toVet = ref.watch(pendingCardsProvider).valueOrNull ?? 0;
+    final caption = generating
+        ? 'New cards are being generated. Vet them to fill your session.'
+        : toVet > 0
+            ? 'Vet a few more cards in the Vet tab to fill your session.'
+            : 'Generate more cards from Settings to fill your session.';
+    return SafeArea(
+      child: Padding(
+        padding:
+            const EdgeInsets.symmetric(horizontal: T.gutter, vertical: T.s18),
+        child: Column(
+          children: [
+            const Align(
+                alignment: Alignment.centerRight, child: SettingsButton()),
+            Expanded(
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset('Mascot.png', width: 200, height: 200),
+                    Text('${state.queue.length} of ${state.target} ready',
+                        textAlign: TextAlign.center, style: Typo.display(32)),
+                    const SizedBox(height: T.s18),
+                    Text(caption,
+                        textAlign: TextAlign.center,
+                        style: Typo.bodySmall.copyWith(color: T.inkMeta)),
+                  ],
+                ),
+              ),
+            ),
+            PrimaryButton('Start with ${state.queue.length} now',
+                onPressed: ctrl.startAnyway),
           ],
         ),
       ),
