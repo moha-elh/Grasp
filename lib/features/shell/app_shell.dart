@@ -10,6 +10,7 @@ import '../retention/analytics.dart';
 import '../retention/retention_screen.dart';
 import '../review/session_controller.dart';
 import '../session/session_screen.dart';
+import '../settings/settings_controller.dart';
 import '../vetting/vetting_controller.dart';
 import '../vetting/vetting_screen.dart';
 
@@ -28,6 +29,10 @@ class _AppShellState extends ConsumerState<AppShell> {
   int _index = 0;
   bool _sessionActive = false;
   bool _kickstarted = false;
+  // Tabs are built on first visit only. IndexedStack would otherwise build all
+  // four at launch, and Explore alone fires ~6 LLM calls on load, which ate
+  // the Groq rate limit on every app open.
+  final _opened = <int>{};
 
   @override
   void initState() {
@@ -55,10 +60,14 @@ class _AppShellState extends ConsumerState<AppShell> {
         }
         return;
       }
-      // Returning account: FR-7 automatic background generation. Top up the
-      // pending queue on app open so cards are always ready to vet without
-      // opening Settings. runPass() no-ops when the queue is already full, so
-      // this is cheap when there is nothing to do, and never switches tabs.
+      // Returning account: FR-7 automatic background generation, but only when
+      // running low: nothing left to vet AND less than a day's worth of
+      // approved new cards. Otherwise every launch would add another batch.
+      // Manual generation in Settings is unaffected. Never switches tabs.
+      final cards = ref.read(cardsRepoProvider);
+      if (await cards.pendingCount() > 0) return;
+      final perDay = ref.read(newCardsPerDayProvider);
+      if ((await cards.newCards(limit: perDay)).length >= perDay) return;
       await ref.read(generationControllerProvider.notifier).runPass();
     } catch (_) {
       // A failed pass is harmless; the user can still generate from Settings.
@@ -112,7 +121,12 @@ class _AppShellState extends ConsumerState<AppShell> {
     ];
 
     return Scaffold(
-      body: IndexedStack(index: _index, children: screens),
+      body: IndexedStack(index: _index, children: [
+        for (var i = 0; i < screens.length; i++)
+          (_opened..add(_index)).contains(i)
+              ? screens[i]
+              : const SizedBox.shrink(),
+      ]),
       bottomNavigationBar: _buildTabBar(),
     );
   }

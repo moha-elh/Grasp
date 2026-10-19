@@ -91,7 +91,8 @@ class VettingController extends StateNotifier<VettingState> {
 
   /// Swipe up (FR-14): accept, but with edited wording first.
   Future<void> acceptEdited(String front, String back) async {
-    if (state.isComplete) return;
+    // Blank wording would store an unanswerable card; ignore the save.
+    if (state.isComplete || front.isEmpty || back.isEmpty) return;
     final card = state.current!;
     state.queue[state.index] = card.copyWith(front: front, back: back);
     // Advance first (accept() mutates state synchronously before its await),

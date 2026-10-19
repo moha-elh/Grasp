@@ -13,8 +13,14 @@ final _db = SupabaseClient('https://x.supabase.co', 'dummy-anon-key');
 class _Dropbox extends DropboxService {
   final List<VaultNote> notes;
   _Dropbox(this.notes);
+  int downloads = 0;
   @override
-  Future<List<VaultNote>> eligibleNotes() async => notes;
+  Future<List<String>> notePaths() async => [for (final n in notes) n.path];
+  @override
+  Future<String> downloadNote(String path) async {
+    downloads++;
+    return notes.firstWhere((n) => n.path == path).content;
+  }
 }
 
 /// In-memory cards table: front + source path per card.
@@ -42,13 +48,18 @@ class _Cards extends CardsRepository {
       rows.addAll([for (final c in cards) (sourcePath, c.front)]);
 }
 
+/// Real rotation semantics: unvisited first, then least recently visited.
 class _Coverage extends CoverageRepository {
   _Coverage() : super(_db);
+  final visited = <String, int>{};
+  var _clock = 0;
   @override
   Future<List<String>> nextToGenerate(List<String> eligiblePaths) async =>
-      eligiblePaths;
+      [...eligiblePaths]..sort((a, b) =>
+          (visited[a] ?? -1).compareTo(visited[b] ?? -1));
   @override
-  Future<void> markGenerated(String userId, String sourcePath, int n) async {}
+  Future<void> markGenerated(String userId, String sourcePath, int n) async =>
+      visited[sourcePath] = _clock++;
 }
 
 /// Fake model: each note holds [ideas] distinct ideas. It returns up to
@@ -83,11 +94,14 @@ class _Llm extends LlmService {
   }
 }
 
-GenerationService _svc(_Llm llm, _Cards cards, int notes) => GenerationService(
-      _Dropbox([for (var i = 0; i < notes; i++) VaultNote('n$i', 'text')]),
+GenerationService _svc(_Llm llm, _Cards cards, int notes,
+        {_Dropbox? dropbox, _Coverage? coverage}) =>
+    GenerationService(
+      dropbox ??
+          _Dropbox([for (var i = 0; i < notes; i++) VaultNote('n$i', '#flashcard')]),
       llm,
       cards,
-      _Coverage(),
+      coverage ?? _Coverage(),
       FsrsService(),
     );
 
@@ -142,5 +156,20 @@ void main() {
 
   test('empty vault is a no-op', () async {
     expect(await _svc(_Llm(), _Cards(), 0).runPass(userId: 'u', cardsTotal: 15), 0);
+  });
+
+  test('a big vault downloads only ~10 tagged notes per pass, rotating through', () async {
+    final dropbox = _Dropbox([
+      for (var i = 0; i < 300; i++) VaultNote('n$i', i.isEven ? '#flashcard' : 'plain'),
+    ]);
+    final coverage = _Coverage();
+    final svc = _svc(_Llm(), _Cards(), 0, dropbox: dropbox, coverage: coverage);
+    await svc.runPass(userId: 'u', cardsTotal: 15);
+    expect(dropbox.downloads, lessThan(30),
+        reason: '10 tagged + a few untagged, not all 300');
+    final firstLap = coverage.visited.keys.toSet();
+    await svc.runPass(userId: 'u', cardsTotal: 15);
+    expect(coverage.visited.keys.toSet().difference(firstLap), isNotEmpty,
+        reason: 'the next pass moves on to notes not yet visited');
   });
 }

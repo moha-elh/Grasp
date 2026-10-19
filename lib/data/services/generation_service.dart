@@ -23,7 +23,7 @@ class GenerationService {
   /// FR-9 target type mix: starts at an even split, then self-adjusts toward the
   /// card types the user likes and away from ones they flag. ponytail: linear
   /// nudge with a floor, no learning-rate schedule.
-  Future<Map<String, double>> _targetMix() async {
+  Future<Map<String, double>> targetMix() async {
     final net = await _cards.qualityBalanceByType();
     const base = 0.33, step = 0.03, floor = 0.15;
     final raw = {
@@ -50,13 +50,25 @@ class GenerationService {
     // always delivers its full size instead of stopping at a random count.
     if (await _cards.pendingCount() >= Config.pendingQueueTarget) return 0;
 
-    final notes = await _dropbox.eligibleNotes();
-    if (notes.isEmpty) return 0;
-    final byPath = {for (final n in notes) n.path: n};
-    final order = await _coverage.nextToGenerate(byPath.keys.toList());
+    // Download in rotation order (least recently visited first) only until
+    // [Config.notesScannedPerPass] tagged notes are in hand. Untagged notes
+    // are stamped as visited so they rotate to the back and get re-checked
+    // (for a newly added tag) once per lap, not on every pass.
+    final byPath = <String, VaultNote>{};
+    for (final path in await _coverage.nextToGenerate(await _dropbox.notePaths())) {
+      if (byPath.length >= Config.notesScannedPerPass) break;
+      final content = await _dropbox.downloadNote(path);
+      if (content.contains(Config.flashcardTag)) {
+        byPath[path] = VaultNote(path, content);
+      } else {
+        await _coverage.markGenerated(userId, path, 0);
+      }
+    }
+    if (byPath.isEmpty) return 0;
+    final order = byPath.keys.toList();
 
     final maxPerNote = (cardsTotal / notesPerPass).ceil();
-    final targetMix = await _targetMix();
+    final targetMix = await this.targetMix();
     var budget = cardsTotal;
     var added = 0;
     // A mature vault answers "nothing new" a lot; bound the LLM calls so a

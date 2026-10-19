@@ -128,6 +128,9 @@ class DropboxService {
     return notes;
   }
 
+  /// Every markdown path in the scoped folder. Metadata only, no downloads.
+  Future<List<String>> notePaths() => _listMarkdownPaths(Config.notesFolder);
+
   Future<String> downloadNote(String path) async {
     final token = await _validAccessToken();
     final resp = await _http.post(

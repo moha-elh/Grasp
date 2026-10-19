@@ -36,6 +36,11 @@ class Config {
   /// Notes a single pass draws from, so a pass never stuffs one note.
   static const generationNotesPerPass = 3;
 
+  /// Most tagged notes a pass downloads. Paths are listed cheaply, then notes
+  /// are fetched in rotation order until this many tagged ones are in hand, so
+  /// a big vault doesn't mean downloading every note on every pass.
+  static const notesScannedPerPass = 10;
+
   /// Background generation stops filling the queue once this many `pending`
   /// cards exist, so the user is never flooded (FR-7).
   static const pendingQueueTarget = 30;

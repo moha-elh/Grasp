@@ -46,7 +46,7 @@ class SettingsScreen extends ConsumerWidget {
             _dropbox(ref),
             const SizedBox(height: T.s32),
             _section('GENERATION MIX'),
-            _mix(),
+            _mix(ref),
             const SizedBox(height: T.s12),
             _readonly('Starts even, then leans toward the card types you like '
                 'and away from the ones you flag.'),
@@ -252,17 +252,21 @@ class SettingsScreen extends ConsumerWidget {
     ));
   }
 
-  /// Read-only target proportions for background generation (FR-8). An even
-  /// split across the three card types.
-  Widget _mix() => _panel(Column(
-        children: const [
-          _MixRow('Anchor', 'naming / definition', 0.34),
-          SizedBox(height: T.s12),
-          _MixRow('Mechanism', 'why / how it works', 0.33),
-          SizedBox(height: T.s12),
-          _MixRow('Application', 'when to use it', 0.33),
-        ],
-      ));
+  /// Read-only target proportions for background generation (FR-8): the live
+  /// mix, nudged by likes and flags. Even split until it loads.
+  Widget _mix(WidgetRef ref) {
+    final m = ref.watch(targetMixProvider).valueOrNull ?? const {};
+    double f(String t) => m[t] ?? 1 / 3;
+    return _panel(Column(
+      children: [
+        _MixRow('Anchor', 'naming / definition', f('anchor')),
+        const SizedBox(height: T.s12),
+        _MixRow('Mechanism', 'why / how it works', f('mechanism')),
+        const SizedBox(height: T.s12),
+        _MixRow('Application', 'when to use it', f('application')),
+      ],
+    ));
+  }
 
   /// How many cards a single "generate" pass should add to the Vet queue.
   Widget _generateSize(WidgetRef ref) {

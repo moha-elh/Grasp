@@ -12,6 +12,10 @@ final generationServiceProvider = Provider((ref) => GenerationService(
       ref.watch(fsrsProvider),
     ));
 
+/// The live FR-9 type mix generation will use, for display in Settings.
+final targetMixProvider = FutureProvider.autoDispose<Map<String, double>>(
+    (ref) => ref.watch(generationServiceProvider).targetMix());
+
 enum GenPhase { idle, running, done, error }
 
 class GenStatus {
